@@ -1,0 +1,32 @@
+# Git Ignore — SafeScript AI
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node (if ever added)
+node_modules/
+package-lock.json
+
+# Environment secrets (never commit API keys!)
+.env
+.env.local
+.env.production
+
+# Build output (if ever added)
+/dist
+/build
+
+# Temp & cache
+.cache/
+tmp/
+*.tmp
