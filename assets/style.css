@@ -1,0 +1,120 @@
+/* =====================================================
+   SafeScript AI — Global Shared Styles
+   ===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
+
+/* ---- CSS Variables ---- */
+:root {
+    --brand-primary:   #2563eb;    /* Blue 600 */
+    --brand-secondary: #0ea5e9;    /* Sky 500  */
+    --brand-teal:      #0d9488;    /* Teal 600 */
+    --bg-base:         #f1f5f9;    /* Slate 100 */
+    --bg-card:         #ffffff;
+    --text-main:       #1e293b;    /* Slate 800 */
+    --text-muted:      #64748b;    /* Slate 500 */
+    --border-light:    #e2e8f0;    /* Slate 200 */
+    --shadow-card:     0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --radius-card:     1.5rem;
+    --radius-button:   0.75rem;
+}
+
+/* ---- Base ---- */
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Utility: Tab System ---- */
+.tab-content { display: none; }
+.tab-content.active-tab {
+    display: block;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Utility: Sidebar Item ---- */
+.sidebar-item.active {
+    background-color: var(--brand-primary);
+    color: white !important;
+    box-shadow: var(--shadow-elevated);
+}
+.sidebar-item.active i { color: white !important; }
+
+/* ---- Utility: Glass Card ---- */
+.glass-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ---- Utility: Modals ---- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(6px);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+/* ---- Utility: Status Badges ---- */
+.badge-pending  { background: #fef3c7; color: #92400e; }
+.badge-active   { background: #dcfce7; color: #166534; }
+.badge-critical { background: #fee2e2; color: #991b1b; }
+.badge-stable   { background: #eff6ff; color: #1e40af; }
+
+.badge {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+}
+
+/* ---- Utility: Pulse dot ---- */
+.pulse-dot {
+    width: 10px;
+    height: 10px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: pulseDot 1.5s infinite;
+}
+@keyframes pulseDot {
+    0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+    70%  { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+    100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+
+/* ---- Utility: Input Focus Ring ---- */
+.input-ring:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+
+/* ---- Utility: Scrollbar ---- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ---- Responsive: Hide sidebar on mobile ---- */
+@media (max-width: 1023px) {
+    aside { display: none !important; }
+    main  { margin-left: 0 !important; }
+}
