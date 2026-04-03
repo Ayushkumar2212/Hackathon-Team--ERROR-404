@@ -1,0 +1,41 @@
+{
+  "project": "SafeScript AI",
+  "version": "1.2.0",
+  "author": "Ayush Kumar (Lead Developer)",
+  "profile": {
+    "fullName": "Ayush Kumar",
+    "role": "Lead Architect - SafeScript AI",
+    "expertise": ["AI Healthcare Solutions", "Fraud Detection Algorithms", "Full-Stack Development"],
+    "location": "Patna, Bihar",
+    "github": "https://github.com/InnovateX26/Error_404"
+  },
+  "portal_stats": {
+    "patient": {
+      "features": ["AI Voice Chatbot", "SOS Emergency Tracking", "Digital Document Vault", "Nearby Care Map"],
+      "status": "Production Ready"
+    },
+    "hospital": {
+      "features": ["Command Center", "OPD Management", "Smart Inventory", "Digital Notepad", "Staff Roster"],
+      "status": "Operational"
+    },
+    "pharmacy": {
+      "features": ["Live Order Tracking", "Inventory Restock Requests", "Digital Invoicing"],
+      "status": "Operational"
+    },
+    "insurance": {
+      "features": ["Fraud Audit Checklist", "Provider Trust Ratings", "Master Data Export"],
+      "status": "Live - Audit Active"
+    }
+  },
+  "technical_stack": {
+    "frontend": "HTML5, Vanilla CSS, TailwindCSS",
+    "logic": "JavaScript (ES6+)",
+    "storage": "Local Browser Storage (LocalStorage API)",
+    "utilities": ["Font Awesome", "Google Fonts (Plus Jakarta Sans)", "jsPDF", "html5-qrcode"]
+  },
+  "demonstration_data": [
+    { "type": "Claim", "id": "DEMO-101", "name": "Ayush Kumar", "amount": 12500, "status": "Pending Audit" },
+    { "type": "SOS", "id": "SOS-ACTIVE", "name": "Emergency Patient", "status": "Waiting for Hospital Dispatch" },
+    { "type": "Inventory", "id": "INV-001", "name": "Surgical Kits", "qty": 340, "status": "Stable" }
+  ]
+}
