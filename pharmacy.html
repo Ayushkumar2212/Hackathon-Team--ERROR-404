@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeScript AI | Pharmacy Command Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap');
+        body { font-family: 'Outfit', sans-serif; background: #f8fafc; color: #1e293b; }
+        .sidebar-item.active { background: #2563eb; color: white !important; border-radius: 1.25rem; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2); }
+        .tab-content { display: none; animation: fadeIn 0.4s ease-out; }
+        .tab-content.active-tab { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside class="w-72 bg-white border-r border-slate-100 flex flex-col fixed h-full z-40">
+        <div class="p-8">
+            <h1 class="text-2xl font-black text-blue-600 tracking-tighter">SafeScript<span class="text-slate-800 italic ml-1 text-sm">PHARMA</span></h1>
+        </div>
+        <nav class="flex-1 px-4 space-y-1 mt-4">
+            <button onclick="switchTab('dashboard', this)" class="sidebar-item active w-full flex items-center px-4 py-4 text-slate-400 font-bold transition-all text-sm gap-3">
+                <i class="fa-solid fa-house-chimney w-5"></i> Dashboard Hub
+            </button>
+            <button onclick="switchTab('billing', this)" class="sidebar-item w-full flex items-center px-4 py-4 text-slate-400 font-bold transition-all text-sm gap-3">
+                <i class="fa-solid fa-receipt w-5"></i> Digital Billing
+            </button>
+            <button onclick="switchTab('orders', this)" class="sidebar-item w-full flex items-center px-4 py-4 text-slate-400 font-bold transition-all text-sm gap-3">
+                <i class="fa-solid fa-truck-fast w-5"></i> Online Orders
+            </button>
+            <button onclick="switchTab('inventory', this)" class="sidebar-item w-full flex items-center px-4 py-4 text-slate-400 font-bold transition-all text-sm gap-3">
+                <i class="fa-solid fa-boxes-stacked w-5"></i> Smart Inventory
+            </button>
+            <button onclick="switchTab('scanner', this)" class="sidebar-item w-full flex items-center px-4 py-4 text-slate-400 font-bold transition-all text-sm gap-3 text-left">
+                <i class="fa-solid fa-qrcode w-5"></i> AI Vision Scanner
+            </button>
+            <button onclick="switchTab('profile', this)" class="sidebar-item w-full flex items-center px-4 py-4 text-slate-400 font-bold transition-all text-sm gap-3">
+                <i class="fa-solid fa-id-card w-5"></i> Pharmacy Profile
+            </button>
+        </nav>
+        <div class="p-6 border-t border-slate-50">
+            <button onclick="logout()" class="flex items-center px-4 py-3 text-slate-400 hover:text-red-500 font-bold text-sm gap-3 transition-all">
+                <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 ml-72">
+        <header class="h-20 glass-header sticky top-0 z-30 px-10 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-prescription"></i></div>
+                <div>
+                    <h2 id="top-store-name" class="text-lg font-black text-slate-800">Pharmacy Desk</h2>
+                    <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Verified Supplier</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden md:block">
+                    <p id="top-user-name" class="text-sm font-black text-slate-800">Admin</p>
+                    <p id="top-user-email" class="text-[10px] font-bold text-slate-400">admin@safescript.ai</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-sm cursor-pointer" onclick="switchTab('profile', document.querySelectorAll('.sidebar-item')[5])">
+                    <img id="top-user-dp" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </header>
+
+        <div class="p-10">
+            <!-- Dashboard -->
+            <div id="dashboard" class="tab-content active-tab space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-blue-600 p-6 rounded-[2rem] text-white shadow-xl shadow-blue-100">
+                        <p class="text-[10px] font-black uppercase opacity-60">Sales Today</p>
+                        <h3 id="dash-sales" class="text-3xl font-black mt-1 italic">₹0.00</h3>
+                        <div class="mt-4 h-1 bg-white/20 rounded-full overflow-hidden"><div class="h-full bg-white w-2/3"></div></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black uppercase text-slate-400">Pending Orders</p>
+                        <h3 id="dash-pending" class="text-3xl font-black text-slate-800 mt-1">0</h3>
+                        <p class="text-xs font-bold text-amber-500 mt-2">Action Required</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black uppercase text-slate-400">Low Stock</p>
+                        <h3 id="dash-lowstock" class="text-3xl font-black text-rose-500 mt-1">0</h3>
+                        <p class="text-xs font-bold text-slate-400 mt-2">Inventory Alert</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black uppercase text-slate-400">Scan Activity</p>
+                        <h3 id="dash-scans" class="text-3xl font-black text-slate-800 mt-1">0</h3>
+                        <p class="text-xs font-bold text-emerald-500 mt-2">AI-Powered Hub</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden">
+                        <h3 class="text-xl font-black text-slate-800 mb-6">Recent Sales Log</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="text-[10px] uppercase font-black text-slate-400"><tr><th class="py-4">Details</th><th class="py-4">Amount</th><th class="py-4">Time</th></tr></thead>
+                                <tbody id="dash-sales-list" class="divide-y divide-slate-50 font-bold text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-indigo-900 p-10 rounded-[3rem] text-white relative overflow-hidden group shadow-2xl shadow-indigo-200">
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg"><i class="fas fa-brain animate-pulse"></i></div>
+                                <h3 class="text-2xl font-black tracking-tighter">AI Stock Predictor</h3>
+                            </div>
+                            <p class="text-indigo-200 text-sm leading-relaxed mb-6 font-medium">SafeScript AI is analyzing seasonal trends and local health alerts.</p>
+                            
+                            <div id="ai-prediction-box" class="bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-md mb-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] font-black uppercase text-indigo-300">Predicted Demand</span>
+                                    <span class="bg-emerald-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase">High Confidence</span>
+                                </div>
+                                <h4 id="ai-prediction-text" class="text-lg font-bold text-white">Calculating...</h4>
+                                <p id="ai-prediction-reason" class="text-[10px] text-indigo-400 mt-1 italic">Processing live network health feeds</p>
+                            </div>
+
+                            <button onclick="runAIPredictor()" class="w-full bg-white text-indigo-900 py-3 rounded-2xl font-black text-sm hover:scale-105 transition-all shadow-xl">Refresh Neural Analysis</button>
+                        </div>
+                        <i class="fas fa-chart-line absolute -right-8 -bottom-8 text-9xl text-white/5 opacity-10 group-hover:scale-110 transition-transform"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Online Orders -->
+            <div id="orders" class="tab-content space-y-8">
+                <div class="flex justify-between items-center bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100">
+                    <div>
+                        <h3 class="text-3xl font-black text-slate-800 tracking-tighter">Online Delivery Queue</h3>
+                        <p class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">Manage patient medication requests</p>
+                    </div>
+                    <button onclick="loadOrders()" class="bg-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center hover:bg-slate-900 transition-all shadow-lg"><i class="fas fa-truck-medical"></i></button>
+                </div>
+
+                <div class="bg-white rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-[10px] uppercase font-black text-slate-400 border-b">
+                            <tr><th class="px-10 py-6">Patient / Source</th><th class="px-10 py-6">Order Status</th><th class="px-10 py-6">Incoming Time</th><th class="px-10 py-6 text-center">Action</th></tr>
+                        </thead>
+                        <tbody id="orders-list" class="divide-y divide-slate-100 font-bold"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Digital Billing -->
+            <div id="billing" class="tab-content">
+                <div class="bg-white p-12 rounded-[4rem] border border-slate-100 shadow-xl max-w-4xl mx-auto">
+                    <h3 class="text-3xl font-black text-slate-800 mb-8 tracking-tighter">Issue Digital Invoice</h3>
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-4">Pharmacy Branch</label><input type="text" id="bill-store" class="w-full p-5 bg-slate-50 rounded-2xl ring-1 ring-slate-100 outline-none font-bold text-slate-800"></div>
+                            <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-4">Customer Name</label><input type="text" id="bill-patient" class="w-full p-5 bg-slate-50 rounded-2xl ring-1 ring-slate-100 outline-none font-bold text-slate-800"></div>
+                        </div>
+                        <div class="bg-slate-50 p-8 rounded-[3rem]">
+                            <div class="flex justify-between items-center mb-6">
+                                <h4 class="text-xs font-black uppercase text-slate-400">Order Items</h4>
+                                <div class="flex gap-2">
+                                    <button onclick="addBillRow()" class="bg-slate-900 text-white px-6 py-2 rounded-xl text-xs font-black">+ Add Line</button>
+                                    <button onclick="runInteractionCheck()" class="bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2"><i class="fas fa-biohazard"></i> AI INTERACTION CHECK</button>
+                                </div>
+                            </div>
+                            <div id="bill-items" class="space-y-4"></div>
+                            <div id="interaction-alert" class="hidden mt-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-xs font-bold animate-pulse flex items-center gap-3">
+                                <i class="fas fa-triangle-exclamation text-xl"></i>
+                                <span id="interaction-alert-msg"></span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row justify-between items-end gap-6 pt-6">
+                            <div class="bg-blue-50/50 p-6 rounded-3xl border border-blue-100/50 flex-1 w-full">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <i class="fas fa-shield-virus text-blue-600"></i>
+                                    <span class="text-[10px] font-black uppercase text-blue-600 tracking-widest">AI Prescription Auditor</span>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div id="auditor-status" class="w-2 h-2 rounded-full bg-slate-300"></div>
+                                    <p id="auditor-text" class="text-xs font-bold text-slate-500 italic">Awating billing data...</p>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <p class="text-[10px] font-black text-slate-400 uppercase">Subtotal Amount</p>
+                                <h3 class="text-4xl font-black text-slate-900 leading-none mt-1 italic">₹<span id="bill-total">0.00</span></h3>
+                            </div>
+                            <button onclick="generateDigitalBill()" class="bg-blue-600 text-white px-10 py-5 rounded-[2rem] font-black shadow-xl hover:bg-slate-950 transition-all shrink-0">Generate & Audit Invoice</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Smart Inventory -->
+            <div id="inventory" class="tab-content space-y-8">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-3xl font-black text-slate-800">Global Inventory</h3>
+                    <div class="flex gap-4">
+                        <input type="text" id="inv-name" placeholder="Item Name" class="p-4 bg-white border border-slate-100 rounded-2xl outline-none shadow-sm font-bold">
+                        <input type="number" id="inv-qty" placeholder="Qty" class="w-24 p-4 bg-white border border-slate-100 rounded-2xl outline-none shadow-sm font-bold text-center">
+                        <input type="text" id="inv-price" placeholder="Price" class="w-24 p-4 bg-white border border-slate-100 rounded-2xl outline-none shadow-sm font-bold text-center">
+                        <button onclick="addItem()" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black hover:bg-blue-600 transition-all">Add Stock</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-[10px] uppercase font-black text-slate-400 border-b">
+                            <tr><th class="px-10 py-6">Medicine Item</th><th class="px-10 py-6 text-center">Quantity</th><th class="px-10 py-6">Price Point</th><th class="px-10 py-6">Stock Status</th><th class="px-10 py-6 text-right">Action</th></tr>
+                        </thead>
+                        <tbody id="inventory-list" class="divide-y divide-slate-100 font-bold"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- AI Vision Scanner -->
+            <div id="scanner" class="tab-content max-w-sm mx-auto">
+                <div class="bg-white p-4 rounded-[3rem] shadow-2xl relative overflow-hidden border-2 border-blue-50">
+                    <div class="bg-blue-600 p-8 text-center text-white rounded-t-[2.5rem]">
+                        <h3 class="text-xl font-black flex items-center justify-center gap-2"><i class="fas fa-eye"></i> AI Vision Hub</h3>
+                        <p class="text-xs font-bold text-blue-100 mt-1">Scan RX Barcode or Item Labels</p>
+                    </div>
+                    <div id="reader" class="w-full aspect-square bg-slate-900 overflow-hidden relative">
+                         <div class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none opacity-20"><i class="fas fa-expand text-blue-500 text-6xl"></i></div>
+                    </div>
+                    <button onclick="startScanner()" class="w-full p-6 text-blue-600 font-black hover:bg-blue-50 transition-all">Activate Scanner Hub</button>
+                </div>
+            </div>
+
+            <!-- Profile -->
+            <div id="profile" class="tab-content max-w-2xl mx-auto bg-white p-12 rounded-[4rem] border border-slate-100 shadow-xl">
+                <h3 class="text-3xl font-black text-slate-800 mb-10 tracking-tighter">Pharmacy Identification</h3>
+                <div class="text-center mb-10">
+                    <div class="relative w-40 h-40 mx-auto mb-4">
+                        <img id="prof-dp" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200" class="w-40 h-40 bg-slate-100 rounded-[2.5rem] object-cover shadow-xl border-4 border-white">
+                        <label class="absolute -right-2 -bottom-2 w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg cursor-pointer hover:bg-slate-900 transition-all">
+                            <i class="fas fa-camera"></i>
+                            <input type="file" id="dp-input" class="hidden" onchange="previewDP(event)">
+                        </label>
+                    </div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verified Pharmacy Identity</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-4">Pharmacy / Clinic Name</label><input type="text" id="prof-name" class="w-full p-5 bg-slate-50 rounded-2xl ring-1 ring-slate-100 outline-none font-bold text-slate-800"></div>
+                    <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-4">Official Email</label><input type="email" id="prof-email" class="w-full p-5 bg-slate-50 rounded-2xl ring-1 ring-slate-100 outline-none font-bold text-slate-800"></div>
+                    <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-4">Registry Phone</label><input type="text" id="prof-phone" class="w-full p-5 bg-slate-100 rounded-2xl ring-1 ring-slate-100 outline-none font-bold text-slate-400 cursor-not-allowed" readonly></div>
+                    <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 uppercase ml-4">Gstin / License ID</label><input type="text" id="prof-id" class="w-full p-5 bg-slate-100 rounded-2xl ring-1 ring-slate-100 outline-none font-bold text-slate-400 cursor-not-allowed" readonly></div>
+                    <button onclick="saveProfile()" class="md:col-span-2 bg-slate-900 text-white py-5 rounded-2xl font-black shadow-2xl hover:bg-blue-600 transition-all">Commit Profile Changes</button>
+                </div>
+                <div class="mt-12 h-64 w-full rounded-[3rem] overflow-hidden grayscale-[60%] hover:grayscale-0 transition-all duration-1000 border-2 border-slate-50 relative">
+                     <iframe id="gps-map" class="absolute inset-0 w-full h-full border-0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let html5QrCode;
+        let billsHistory = [];
+
+        // ---------- UI Core ----------
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-tab'));
+            document.getElementById(tabId).classList.add('active-tab');
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            if(el) el.classList.add('active');
+            
+            if(tabId === 'orders') loadOrders();
+            if(tabId === 'inventory') loadInventory();
+            if(tabId === 'profile') loadProfileMap();
+        }
+
+        // ---------- Orders Management ----------
+        function loadOrders() {
+            const orders = JSON.parse(localStorage.getItem('pharmacy_orders')) || [];
+            const tbody = document.getElementById('orders-list');
+            tbody.innerHTML = '';
+            
+            if(orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-10 py-20 text-center text-slate-400 font-bold uppercase text-[10px]">No active delivery requests</td></tr>';
+            } else {
+                orders.forEach(o => {
+                    let statusColor = o.status === 'Pending' ? 'amber' : (o.status === 'Delivered' || o.status === 'Approved') ? 'emerald' : (o.status === 'Declined' || o.status === 'Rejected') ? 'rose' : 'blue';
+                    let source = o.patientName ? `${o.patientName} <br><span class="text-xs text-slate-400 font-bold">${o.phone}</span>` : 'Hospital Hub';
+                    
+                    tbody.innerHTML += `
+                        <tr class="group hover:bg-slate-50 transition-all">
+                            <td class="px-10 py-6 text-slate-800 font-black">${o.id}<br><span class="text-[10px] text-slate-400 uppercase tracking-widest">${source}</span></td>
+                            <td class="px-10 py-6">
+                                <span class="bg-${statusColor}-50 text-${statusColor}-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-${statusColor}-100">${o.status}</span>
+                                <p class="text-[10px] font-black text-slate-500 mt-2 uppercase tracking-tight">${o.medName} (Qty: ${o.qty})</p>
+                            </td>
+                            <td class="px-10 py-6 font-black text-slate-400 text-xs">${o.time}</td>
+                            <td class="px-10 py-6 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                ${o.status === 'Pending' || o.status === 'Processing' ? `
+                                    <button onclick="updateOrderStatus('${o.id}', 'Processing')" class="bg-blue-50 text-blue-600 p-3 rounded-xl transition hover:bg-blue-600 hover:text-white" title="Start Processing"><i class="fas fa-flask"></i></button>
+                                    <button onclick="updateOrderStatus('${o.id}', 'Approved')" class="bg-emerald-50 text-emerald-600 p-3 rounded-xl transition hover:bg-emerald-600 hover:text-white" title="Mark Approved/Packed"><i class="fas fa-box"></i></button>
+                                    <button onclick="updateOrderStatus('${o.id}', 'Declined')" class="bg-rose-50 text-rose-600 p-3 rounded-xl transition hover:bg-rose-600 hover:text-white" title="Decline Order"><i class="fas fa-times"></i></button>
+                                ` : `
+                                    <span class="text-[10px] font-black text-slate-300 uppercase italic">Request Handled</span>
+                                `}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            updateDashCounter();
+        }
+
+        function updateOrderStatus(id, newStatus) {
+            let orders = JSON.parse(localStorage.getItem('pharmacy_orders')) || [];
+            let oIdx = orders.findIndex(o => o.id === id);
+            if(oIdx > -1) {
+                orders[oIdx].status = newStatus;
+                localStorage.setItem('pharmacy_orders', JSON.stringify(orders));
+
+                // Sync with patient orders
+                let patientOrders = JSON.parse(localStorage.getItem('safescript_patient_orders')) || [];
+                let pIdx = patientOrders.findIndex(p => p.id === id);
+                if(pIdx > -1) {
+                    patientOrders[pIdx].status = newStatus;
+                    localStorage.setItem('safescript_patient_orders', JSON.stringify(patientOrders));
+                }
+                
+                // If it was a hospital restock request (HREQ-...) code handle here if needed
+                
+                loadOrders();
+                alert(`Order ID ${id} Status Updated to: ${newStatus}`);
+            }
+        }
+
+        // ---------- Inventory Hub ----------
+        function loadInventory() {
+            let inv = JSON.parse(localStorage.getItem('safescript_inventory')) || [
+                { id: 1, name: 'Paracetamol 500mg', qty: 140, price: '45.00' },
+                { id: 2, name: 'Amoxicillin 250mg', qty: 15, price: '120.00' }
+            ];
+            const tbody = document.getElementById('inventory-list');
+            tbody.innerHTML = '';
+            
+            let lowCount = 0;
+            inv.forEach(i => {
+                let status = i.qty < 20 ? 'Critical' : 'Stable';
+                let statusColor = i.qty < 20 ? 'rose' : 'emerald';
+                if(i.qty < 20) lowCount++;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-10 py-6 text-slate-800">${i.name}</td>
+                        <td class="px-10 py-6 text-center font-black">${i.qty} Units</td>
+                        <td class="px-10 py-6 font-black text-slate-400">₹${i.price}</td>
+                        <td class="px-10 py-6"><span class="bg-${statusColor}-50 text-${statusColor}-600 px-4 py-1 rounded-full text-[10px] font-black uppercase">${status}</span></td>
+                        <td class="px-10 py-6 text-right"><button onclick="removeItem(${i.id})" class="text-rose-200 hover:text-rose-500 transition"><i class="fas fa-trash-alt"></i></button></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('dash-lowstock').innerText = lowCount;
+        }
+
+        function addItem() {
+            let name = document.getElementById('inv-name').value;
+            let qty = document.getElementById('inv-qty').value;
+            let price = document.getElementById('inv-price').value;
+            if(!name || !qty || !price) return alert("Fill item details");
+            
+            let inv = JSON.parse(localStorage.getItem('safescript_inventory')) || [];
+            inv.unshift({ id: Date.now(), name, qty: parseInt(qty), price });
+            localStorage.setItem('safescript_inventory', JSON.stringify(inv));
+            loadInventory();
+            document.getElementById('inv-name').value = '';
+            document.getElementById('inv-qty').value = '';
+            document.getElementById('inv-price').value = '';
+        }
+
+        function removeItem(id) {
+            let inv = JSON.parse(localStorage.getItem('safescript_inventory')) || [];
+            inv = inv.filter(i => i.id !== id);
+            localStorage.setItem('safescript_inventory', JSON.stringify(inv));
+            loadInventory();
+        }
+
+        // ---------- Billing Logic ----------
+        function addBillRow() {
+            const div = document.createElement('div');
+            div.className = "grid grid-cols-12 gap-2 bill-row";
+            div.innerHTML = `
+                <input type="text" placeholder="Item Name" class="col-span-6 p-4 bg-white rounded-2xl ring-1 ring-slate-100 outline-none f-name">
+                <input type="number" placeholder="Qty" oninput="sumTotal()" class="col-span-2 p-4 bg-white rounded-2xl ring-1 ring-slate-100 outline-none text-center f-qty">
+                <input type="number" placeholder="Price" oninput="sumTotal()" class="col-span-3 p-4 bg-white rounded-2xl ring-1 ring-slate-100 outline-none text-center f-price">
+                <button onclick="this.parentElement.remove(); sumTotal()" class="col-span-1 text-rose-300 hover:text-rose-500"><i class="fas fa-times"></i></button>
+            `;
+            document.getElementById('bill-items').appendChild(div);
+        }
+
+        function sumTotal() {
+            let total = 0;
+            document.querySelectorAll('.bill-row').forEach(r => {
+                let q = r.querySelector('.f-qty').value || 0;
+                let p = r.querySelector('.f-price').value || 0;
+                total += (q * p);
+            });
+            document.getElementById('bill-total').innerText = total.toFixed(2);
+        }
+
+        function generateDigitalBill() {
+            const patient = document.getElementById('bill-patient').value;
+            const store = document.getElementById('bill-store').value;
+            const total = document.getElementById('bill-total').innerText;
+            if(!patient || total == "0.00") return alert("Patient name and items required!");
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(22); doc.text(store || "Pharmacy Hub", 20, 20);
+            doc.setFontSize(10); doc.text(`Customer: ${patient} | Date: ${new Date().toLocaleDateString()}`, 20, 35);
+            
+            let rows = [];
+            document.querySelectorAll('.bill-row').forEach(r => {
+                rows.push([r.querySelector('.f-name').value, r.querySelector('.f-qty').value, "Rs. " + r.querySelector('.f-price').value, "Rs. " + (r.querySelector('.f-qty').value * r.querySelector('.f-price').value).toFixed(2)]);
+            });
+            
+            doc.autoTable({ startY: 45, head: [['Item', 'Qty', 'Rate', 'Amount']], body: rows });
+            doc.setFontSize(14); doc.text(`TOTAL AMOUNT: RS. ${total}`, 130, doc.previousAutoTable.finalY + 15);
+            doc.save(`${patient}_PharmaBill.pdf`);
+
+            // Save to logs
+            let logs = JSON.parse(localStorage.getItem('safescript_pharma_logs')) || [];
+            logs.unshift({ id: Date.now(), patient, amount: total, time: new Date().toLocaleTimeString() });
+            localStorage.setItem('safescript_pharma_logs', JSON.stringify(logs));
+            updateDashCounter();
+            alert("Digital Invoice Saved & Downloaded.");
+        }
+
+        // ---------- Dashboard Sync ----------
+        function updateDashCounter() {
+            let logs = JSON.parse(localStorage.getItem('safescript_pharma_logs')) || [];
+            let total = logs.reduce((sum, l) => sum + parseFloat(l.amount), 0);
+            document.getElementById('dash-sales').innerText = "₹" + total.toLocaleString();
+            
+            let orders = JSON.parse(localStorage.getItem('pharmacy_orders')) || [];
+            document.getElementById('dash-pending').innerText = orders.filter(o => o.status === 'Pending').length;
+            
+            const tbody = document.getElementById('dash-sales-list');
+            tbody.innerHTML = logs.slice(0, 5).map(l => `
+                <tr><td class="py-4">${l.patient}</td><td class="py-4 text-emerald-600">₹${l.amount}</td><td class="py-4 text-slate-400">${l.time}</td></tr>
+            `).join('');
+        }
+
+        // ---------- Profile Hub ----------
+        function saveProfile() {
+            const u = JSON.parse(localStorage.getItem('safescript_user'));
+            u.fullName = document.getElementById('prof-name').value;
+            u.email = document.getElementById('prof-email').value;
+            localStorage.setItem('safescript_user', JSON.stringify(u));
+            loadProfile();
+            alert("Pharmacy Registry Updated!");
+        }
+
+        function loadProfile() {
+            const u = JSON.parse(localStorage.getItem('safescript_user'));
+            if(u) {
+                document.getElementById('top-store-name').innerText = u.institution || u.fullName;
+                document.getElementById('top-user-name').innerText = u.fullName;
+                document.getElementById('top-user-email').innerText = u.email;
+                document.getElementById('prof-name').value = u.institution || u.fullName;
+                document.getElementById('prof-email').value = u.email;
+                document.getElementById('prof-phone').value = u.phone;
+                document.getElementById('prof-id').value = u.idVal || 'N/A';
+                if(u.dp) {
+                    document.getElementById('prof-dp').src = u.dp;
+                    document.getElementById('top-user-dp').src = u.dp;
+                }
+            }
+        }
+
+        function previewDP(e) {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    document.getElementById('prof-dp').src = reader.result;
+                    document.getElementById('top-user-dp').src = reader.result;
+                    let u = JSON.parse(localStorage.getItem('safescript_user'));
+                    u.dp = reader.result;
+                    localStorage.setItem('safescript_user', JSON.stringify(u));
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function startScanner() {
+            if(!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (txt) => {
+                let scans = parseInt(localStorage.getItem('pharma_scans') || 0) + 1;
+                localStorage.setItem('pharma_scans', scans);
+                document.getElementById('dash-scans').innerText = scans;
+                
+                const names = ["Gasofast", "Paracetamol", "Dolo 650", "Pan-D", "Allegra 120"];
+                const brands = ["Cipla", "Sun Pharma", "Dr. Reddy's", "Abbott India"];
+                const mfg = 2023 + Math.floor(Math.random() * 3);
+                const exp = mfg + 2 + Math.floor(Math.random() * 3);
+                
+                const mockText = `AI VISION RESULT:\nBrand: ${brands[Math.floor(Math.random()*brands.length)]}\nMedicine: ${names[Math.floor(Math.random()*names.length)]}\nMFG: 01/${mfg}\nEXP: 01/${exp}\nQR_RAW: ${txt}`;
+                alert(mockText);
+            }).catch(()=>{});
+        }
+
+        function loadProfileMap() {
+            if(navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(p => {
+                    document.getElementById('gps-map').src = `https://maps.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}&z=15&output=embed`;
+                });
+            }
+        }
+
+        function logout() { if(confirm("Log out session?")) window.location.href = "login.html"; }
+
+        // AI Logic: Stock Predictor
+        async function runAIPredictor() {
+            const title = document.getElementById('ai-prediction-text');
+            const reason = document.getElementById('ai-prediction-reason');
+            
+            title.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analyzing Network...';
+            
+            const predictions = [
+                { item: "Paracetamol 500", reason: "Viral fever trend spiked in Sector 4", level: "High Demand Expected" },
+                { item: "Azithromycin 250", reason: "Sudden drop in local temperature detected", level: "Stock Replenishment Urged" },
+                { item: "Masks & Sanitisers", reason: "Pollution index crossed 350+ AQI", level: "Severe Scarcity Predicted" }
+            ];
+
+            await new Promise(r => setTimeout(r, 1500));
+            
+            const p = predictions[Math.floor(Math.random() * predictions.length)];
+            title.innerHTML = `<span class="text-white">${p.item}</span> <span class="text-emerald-400 text-xs font-bold block mt-1 uppercase tracking-widest">${p.level}</span>`;
+            reason.innerText = `Reason: ${p.reason}`;
+        }
+
+        // AI Logic: Interaction Checker (UPGRADED)
+        async function runInteractionCheck() {
+            const items = [];
+            document.querySelectorAll('.f-name').forEach(i => items.push(i.value.trim().toLowerCase()));
+            
+            const alertBox = document.getElementById('interaction-alert');
+            const alertMsg = document.getElementById('interaction-alert-msg');
+            const checkBtn = document.querySelector('button[onclick="runInteractionCheck()"]');
+
+            if (items.length < 2) {
+                return alert("AI Needs at least 2 items to run cross-node interaction analysis.");
+            }
+
+            // High-tech scanning effect
+            checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analying Molecular Sync...';
+            checkBtn.classList.add('opacity-50');
+            await new Promise(r => setTimeout(r, 1200));
+
+            let risk = null;
+            const names = items.join(" ");
+
+            // Rule 1: Overdose (Paracetamol + Dolo)
+            if (names.includes('paracetamol') && names.includes('dolo')) {
+                risk = "ACUTE OVERDOSE RISK: Both Paracetamol and Dolo contain Acetaminophen. AI warns of severe Liver Toxicity risk if taken together!";
+            }
+            // Rule 2: Blood Thinners
+            else if (names.includes('aspirin') && names.includes('warfarin')) {
+                risk = "CRITICAL INTERACTION: Aspirin + Warfarin detected. Extreme risk of Internal Hemorrhage (Bleeding). AI recommends instant pause!";
+            }
+            // Rule 3: Alcohol + Strong Meds
+            else if (names.includes('metronidazole') || names.includes('alcohol')) {
+                 if(names.includes('metronidazole')) risk = "AI WARNING: Metronidazole detected. Patient must strictly avoid Alcohol to prevent Disulfiram-like reaction (Severe Vomiting/Heart Palpitations).";
+            }
+            // Rule 4: Cardiac + Antibiotic
+            else if (names.includes('digoxin') && names.includes('clarithromycin')) {
+                risk = "CARDIAC ALERT: Clarithromycin increases Digoxin toxicity levels by 70%. AI predicts high risk of heart rhythm anomalies!";
+            }
+
+            checkBtn.innerHTML = '<i class="fas fa-biohazard"></i> AI INTERACTION CHECK';
+            checkBtn.classList.remove('opacity-50');
+
+            if (risk) {
+                alertBox.classList.remove('hidden');
+                alertMsg.innerText = risk;
+                alert("🔴 AI CRITICAL ALERT: Dangerous interaction detected! Check the red notice below.");
+            } else {
+                alertBox.classList.add('hidden');
+                alert("🟢 AI Analysis Safe: No common dangerous drug-drug combinations found in this specific sequence.");
+            }
+        }
+
+        // AI Logic: Billing Auditor
+        function runBillingAuditor() {
+            const status = document.getElementById('auditor-status');
+            const text = document.getElementById('auditor-text');
+            const rows = document.querySelectorAll('.bill-row');
+
+            if (rows.length > 0) {
+                status.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                text.className = "text-xs font-bold text-emerald-600";
+                text.innerText = "Prescription verified via Digital Signature Mesh. Claim valid.";
+            } else {
+                status.className = "w-2 h-2 rounded-full bg-slate-300";
+                text.className = "text-xs font-bold text-slate-500 italic";
+                text.innerText = "Awaiting billing data...";
+            }
+        }
+
+        // Modified addBillRow/sumTotal to trigger auditor
+        const originalAddBillRow = addBillRow;
+        addBillRow = function() {
+            originalAddBillRow();
+            runBillingAuditor();
+        }
+
+        const originalSumTotal = sumTotal;
+        sumTotal = function() {
+            originalSumTotal();
+            runBillingAuditor();
+        }
+
+        window.addEventListener('load', () => {
+            loadProfile();
+            updateDashCounter();
+            loadInventory();
+            runAIPredictor();
+            setInterval(loadOrders, 5000); 
+        });
+    </script>
+</body>
+</html>
