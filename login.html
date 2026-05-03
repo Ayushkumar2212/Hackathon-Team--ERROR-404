@@ -203,12 +203,16 @@
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     document.getElementById('geoCoords').innerText = `${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E`;
-                    alert("Real-time GPS coordinates fetched and verified!");
+                    document.getElementById('mapFrame').src = `https://maps.google.com/maps?q=${lat},${lon}&z=16&output=embed`;
                 }, (error) => {
-                    alert("Please enable location services for GPS Sync.");
+                    console.warn("Please enable location services for GPS Sync.");
                 });
             }
         }
+        
+        window.addEventListener('load', () => {
+            updateLocation();
+        });
 
         function handleSubmit(e) {
             e.preventDefault();
