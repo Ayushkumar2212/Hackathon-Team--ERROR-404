@@ -11,8 +11,8 @@ try {
     exit
 }
 
-try {
-    while ($listener.IsListening) {
+while ($listener.IsListening) {
+    try {
         $context = $listener.GetContext()
         $request = $context.Request
         $response = $context.Response
@@ -64,9 +64,9 @@ try {
             }
         }
     }
-}
-catch {
-    Write-Host "Server stopped."
+    catch {
+        Write-Host "Connection dropped, continuing..."
+    }
 }
 finally {
     $listener.Stop()
