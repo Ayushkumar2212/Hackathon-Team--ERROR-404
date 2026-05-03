@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="patient.js" defer></script>
     <style>
@@ -106,11 +106,56 @@
             max-width: none !important;
             width: 100% !important;
         }
+
+        /* --- Chatbot Premium UI --- */
+        .chat-msg-bot {
+            background: #ffffff;
+            color: #1e293b;
+            border-radius: 1.5rem 1.5rem 1.5rem 0.25rem;
+            padding: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+            max-width: 90%;
+            font-weight: 600;
+        }
+        .chat-msg-user {
+            background: linear-gradient(135deg, #0d9488, #059669);
+            color: #ffffff;
+            border-radius: 1.5rem 1.5rem 0.25rem 1.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 15px rgba(13, 148, 136, 0.2);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+            float: right;
+            clear: both;
+            max-width: 90%;
+            font-weight: 700;
+        }
+        .chat-bubble-font {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
     </style>
 </head>
 <body class="pb-36">
 
-    <header class="p-6 flex justify-between items-center sticky top-0 z-50 bg-white/60 backdrop-blur-md">
+    <!-- Multilingual Dropdown -->
+
+    <div id="google_translate_element" class="hidden"></div>
+    
+    <!-- Welcome Notification -->
+    <div id="welcome-notification" class="fixed top-0 left-1/2 -translate-x-1/2 -translate-y-full transition-transform duration-700 ease-out z-[99999] bg-gradient-to-r from-teal-500 to-emerald-500 text-white px-8 py-4 rounded-b-3xl shadow-2xl font-black flex items-center gap-3">
+        <i class="fas fa-hand-sparkles text-2xl animate-pulse"></i>
+        <span>Welcome to Safescript Patient Portal, have a nice day!</span>
+    </div>
+
+    <header class="p-6 flex justify-between items-center sticky top-0 z-50 bg-white/60 backdrop-blur-md max-w-md mx-auto rounded-b-3xl">
         <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('profile')">
             <div class="w-12 h-12 bg-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-100 rotate-6 overflow-hidden">
                 <img id="user-display-dp" src="" class="hidden w-full h-full object-cover">
@@ -122,19 +167,38 @@
                     <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                     <span id="user-display-role" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Patient Portal</span>
                 </div>
+                <!-- Linked Email Badge -->
+                <div class="mt-1 flex items-center gap-1.5 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                    <i class="fas fa-link text-[8px] text-emerald-600"></i>
+                    <span class="text-[8px] font-black text-emerald-600 uppercase">Linked: ayushdham405@gmail.com</span>
+                </div>
             </div>
         </div>
-        <button onclick="triggerSOS()" class="bg-red-50 text-red-500 border border-red-100 px-5 py-2 rounded-2xl text-xs font-black hover:bg-red-500 hover:text-white transition-all shadow-sm">
-            SOS EMERGENCY
-        </button>
+        <div class="flex items-center gap-2">
+            <select id="user-lang-select" onchange="changeGTranslate(this.value)" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 outline-none hover:border-teal-400 transition-colors shadow-sm cursor-pointer hide-arrow" style="-webkit-appearance: none; appearance: none;">
+                <option value="en" selected>English 🇬🇧</option>
+                <option value="hi">हिंदी (Hindi)</option>
+                <option value="mai">मैथिली (Maithili)</option>
+                <option value="bho">भोजपुरी (Bhojpuri)</option>
+                <option value="bn">বাংলা (Bengali)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="or">ଓଡ଼ିଆ (Oriya)</option>
+                <option value="mr">मराठी (Marathi)</option>
+                <option value="gu">ગુજરાતી (Gujarati)</option>
+                <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+            </select>
+            <button onclick="triggerSOS()" class="bg-red-50 text-red-500 border border-red-100 px-5 py-2 rounded-2xl text-xs font-black hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                SOS EMERGENCY
+            </button>
+        </div>
     </header>
 
-    <main class="p-6 max-w-7xl mx-auto space-y-8">
+    <main class="p-6 max-w-md mx-auto space-y-8">
 
         <div id="nearby" class="tab-content space-y-6 hidden">
-            <h2 class="text-3xl font-black text-slate-800">Nearby Care</h2>
+            <h2 class="text-2xl font-black text-slate-800">Nearby Care</h2>
             <div class="medical-card p-6 border-2 border-slate-100">
-                <button onclick="findNearby()" class="w-full bg-slate-900 text-white p-3 rounded-xl mb-4 font-bold active:scale-95 transition-all"><i class="fas fa-location-arrow mr-2"></i> Find Nearest Hospital & Pharmacy</button>
+                <button onclick="findNearby()" class="w-full bg-slate-900 text-white p-3 rounded-xl mb-4 text-sm font-bold active:scale-95 transition-all"><i class="fas fa-location-arrow mr-2"></i> Find Nearest Hospital & Pharmacy</button>
                 <div class="h-64 rounded-xl overflow-hidden shadow-sm mb-4 border border-slate-200">
                     <iframe id="nearby-map" class="w-full h-full" frameborder="0" src="https://maps.google.com/maps?q=Hospitals&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe>
                 </div>
@@ -342,9 +406,9 @@
                 </div>
 
                 <div class="p-4 bg-teal-50 border border-teal-100 rounded-2xl space-y-3">
-                    <h4 class="text-[10px] font-black text-teal-600 uppercase tracking-widest"><i class="fas fa-robot mr-1"></i> SafeScript AI Chat (OpenAI)</h4>
-                    <p class="text-[9px] text-teal-500 font-bold leading-tight">Enable advanced medical intelligence! YOUR_OPENAI_API_KEY</p>
-                    <input type="password" id="openai-apikey" placeholder="Enter sk-..." class="w-full p-3 bg-white border border-teal-100 rounded-xl text-[10px] font-bold outline-none">
+                    <h4 class="text-[10px] font-black text-teal-600 uppercase tracking-widest"><i class="fas fa-robot mr-1"></i> SafeScript AI Chat</h4>
+                    <p class="text-[9px] text-teal-500 font-bold leading-tight">Enable advanced medical intelligence!</p>
+                    <input type="password" id="openai-apikey" placeholder="Enter sk-... or AIza..." class="w-full p-3 bg-white border border-teal-100 rounded-xl text-[10px] font-bold outline-none">
                 </div>
 
                 <div class="p-4 bg-teal-50 border border-teal-100 rounded-2xl space-y-3">
@@ -408,7 +472,7 @@
 
     </main>
 
-    <nav class="fixed bottom-8 left-4 right-4 h-20 medical-card flex justify-between items-center px-4 border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-40 rounded-3xl">
+    <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md h-20 medical-card flex justify-between items-center px-4 border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-40 rounded-3xl">
         <button onclick="switchTab('home')" class="nav-link active flex flex-col items-center group w-12 cursor-pointer">
             <i class="fas fa-house-user text-xl"></i>
             <span class="text-[8px] font-bold mt-1 opacity-100 text-slate-600 transition-opacity">Home</span>
@@ -441,8 +505,12 @@
             <div class="flex items-center gap-3">
                 <i class="fas fa-robot text-2xl text-teal-100"></i>
                 <div>
-                    <h3 class="font-black text-sm leading-tight text-white">SafeScript AI Voice</h3>
-                    <p class="text-[9px] text-teal-200 uppercase tracking-widest font-bold">Health Assistant</p>
+                    <h1 class="font-extrabold text-lg leading-tight text-blue-900">SafeScript AI</h1>
+                    <p class="text-[10px] uppercase tracking-widest text-blue-500 font-bold">Patient Hub</p>
+                    <div class="mt-1 flex items-center gap-1.5 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                        <span class="text-[8px] font-black text-emerald-600 uppercase">Linked: ayushdham405@gmail.com</span>
+                    </div>
                 </div>
             </div>
             <button onclick="toggleBot(false)" class="text-white bg-teal-700/50 w-8 h-8 rounded-full flex items-center justify-center hover:bg-teal-800 transition"><i class="fas fa-times"></i></button>
@@ -462,6 +530,7 @@
         </div>
         
         <div class="p-4 bg-white border-t border-slate-100 space-y-3">
+
             <div class="flex items-center gap-2">
                 <input type="text" id="ai-chat-input" placeholder="Type medical query..." class="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-[10px] font-bold outline-none focus:border-teal-500">
                 <button onclick="sendManualChat()" class="bg-teal-600 text-white w-9 h-9 rounded-xl flex items-center justify-center hover:bg-teal-700 transition shadow-md shadow-teal-100"><i class="fas fa-paper-plane"></i></button>
@@ -483,7 +552,111 @@
     <button id="float-bot-btn" onclick="toggleBot(true)" class="fixed bottom-36 right-6 z-[50] w-16 h-16 bg-gradient-to-tr from-teal-500 to-emerald-400 text-white rounded-full shadow-2xl shadow-teal-200 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform" style="animation: pulse-animation 2s infinite;">
         <i class="fas fa-robot text-3xl"></i>
     </button>
+    
+    <!-- Handwriting Decoder Floating Trigger -->
+    <button id="float-decoder-btn" onclick="openDecoderModal()" class="fixed bottom-[220px] right-6 z-[50] w-16 h-16 bg-gradient-to-tr from-purple-500 to-indigo-400 text-white rounded-full shadow-2xl shadow-indigo-200 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform" style="animation: pulse-animation 2s infinite; animation-delay: 1s;">
+        <i class="fas fa-file-prescription text-3xl"></i>
+    </button>
+
+    <!-- Handwriting Decoder Modal -->
+    <div id="decoder-modal" class="fixed inset-0 z-[99999] bg-slate-900/50 backdrop-blur-xl flex flex-col items-center justify-center p-4 opacity-0 scale-0 origin-bottom-right transition-all duration-300">
+        <div class="bg-white max-w-md w-full rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
+            <button onclick="closeDecoderModal()" class="absolute top-4 right-4 w-10 h-10 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover:bg-rose-500 hover:text-white transition"><i class="fas fa-times"></i></button>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
+                    <i class="fas fa-file-prescription"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800">Handwriting Decoder</h3>
+                <p class="text-xs text-slate-500 font-bold mt-2">Upload a prescription to read & hear instructions safely.</p>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="file" id="decoder-upload" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm outline-none focus:border-purple-400" accept="image/*">
+                
+                <button onclick="processHandwriting()" id="decoder-process-btn" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-magic"></i> Decode & Read Aloud
+                </button>
+            </div>
+
+            <div id="decoder-output-area" class="hidden mt-6 space-y-4 relative">
+                <!-- loading state -->
+                <div id="decoder-loading" class="flex flex-col items-center justify-center py-4 hidden">
+                    <i class="fas fa-spinner fa-spin text-3xl text-purple-500 mb-2"></i>
+                    <p class="text-[10px] font-bold text-slate-500 mt-2">Running Chain-of-Verification...</p>
+                </div>
+
+                <!-- results -->
+                <div id="decoder-results" class="bg-slate-50 p-5 rounded-3xl border border-slate-100 hidden">
+                    <p class="text-[10px] font-black text-purple-600 uppercase tracking-widest mb-3"><i class="fas fa-robot mr-1"></i> AI Output</p>
+                    <p id="decoder-text-output" class="text-sm font-bold text-slate-700 leading-relaxed"></p>
+                </div>
+                <div id="decoder-audio-indicator" class="bg-emerald-50 text-emerald-600 p-3 rounded-xl border border-emerald-100 flex items-center justify-between hidden">
+                    <span class="text-xs font-black"><i class="fas fa-volume-up mr-2"></i> Audio Playing...</span>
+                    <i class="fas fa-wave-square animate-pulse"></i>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="patient.js"></script>
+    
+    <!-- Google Translate & Welcome Notification Logic -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,hi,mai,bho,te,bn,or,mr,gu,pa,ur',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+        
+        function changeGTranslate(lang) {
+            var selectField = document.querySelector(".goog-te-combo");
+            if (selectField) {
+                selectField.value = lang;
+                selectField.dispatchEvent(new Event("change"));
+            }
+        }
+        
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const notif = document.getElementById('welcome-notification');
+                if(notif) {
+                    notif.classList.remove('-translate-y-full');
+                    setTimeout(() => {
+                        notif.classList.add('-translate-y-full');
+                    }, 5000);
+                }
+            }, 500);
+        });
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+    <style>
+        .goog-te-gadget-simple {
+            background-color: transparent !important;
+            border: none !important;
+            padding: 4px !important;
+            border-radius: 8px !important;
+            font-size: 10px !important;
+            font-weight: bold !important;
+        }
+        .goog-te-gadget-icon {
+            display: none !important;
+        }
+        .goog-te-gadget-simple img {
+            display: none !important;
+        }
+        .goog-te-combo {
+            border: none !important;
+            outline: none !important;
+            background: transparent !important;
+            font-weight: 800 !important;
+            color: #0f766e !important;
+            cursor: pointer;
+        }
+        body { top: 0 !important; }
+        .goog-te-banner-frame { display: none !important; }
+    </style>
 </body>
 </html>
