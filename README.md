@@ -7,16 +7,13 @@
 ## 📋 Table of Contents
 
 - [Project Overview](#-project-overview)
-- [Live Demo](#-live-demo)
+- [Running Locally](#-running-locally)
+- [New: AI Features](#-new-ai-features)
 - [Features by Role](#-features-by-role)
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
-- [Getting Started (Local)](#-getting-started-local)
-- [User Flows](#-user-flows)
-- [ID Validation Rules](#-id-validation-rules)
 - [Data Storage](#-data-storage)
-- [Screenshots](#-screenshots)
-- [Roadmap](#-roadmap)
+- [Developer](#-developer)
 - [License](#-license)
 
 ---
@@ -26,275 +23,154 @@
 **SafeScript AI** is a healthcare platform that digitizes prescription management, real-time emergency response (SOS), OPD bookings, pharmacy ordering, hospital billing, insurance management, and government-level drug surveillance — all without requiring a backend server.
 
 **Key Pillars:**
+
 - 🔐 **Role-Based Access Control** — Each user type sees only their dashboard
 - 🗺️ **GPS-Tagged Registration** — Institutions are verified with real-time geolocation
-- 📱 **Responsive Design** — Mobile & desktop first for all portals
+- 🤖 **AI-Driven Operations** — Voice commands, smart scanners, and automated billing
 - 🚑 **Live SOS System** — Patient triggers emergency → Hospital dispatches ambulance
 - 💊 **End-to-End Prescription Flow** — Clinic writes Rx → Pharmacy fills → Patient receives
 
 ---
 
-## 🚀 Live Demo
+## 🚀 Running Locally (Windows)
 
-### Running Locally (Windows)
+We use a high-performance PowerShell server for local development.
 
 ```powershell
 # Step 1: Open PowerShell in the project folder
-# Step 2: Run the built-in server script
-powershell -ExecutionPolicy Bypass -File .\serve.ps1
+# Step 2: Run the primary server (recommended)
+powershell -ExecutionPolicy Bypass -File .\serve_8050.ps1
 
 # Step 3: Open your browser and go to:
-# http://localhost:8001
+# http://localhost:8050
 ```
+
+**Alternative Ports:**
+
+- `serve.ps1` (Port 8030)
+- `serve_alt.ps1` (Port 8040)
 
 **Demo OTP:** `123456`
 
 ---
 
-## ✨ Features by Role
+## 🤖 New: AI Features
 
-### 🔑 Login & Registration (`login.html`)
-- Unified registration form for all 6 roles
-- Dynamic field switching based on selected role
-- **12-digit Aadhaar** for Patients & Caregivers
-- **15-digit GSTIN** for Hospitals, Clinics, Pharmacies, Insurance
-- **15-digit Govt ID** for Government Health Bodies
-- Real-time GPS coordinates captured on registration
-- OTP verification flow (demo: `123456`)
-- Auto-redirect to the correct role dashboard after login
+### 🎙️ AI Command Center (Hospital Portal)
+
+A floating AI assistant enabled by the **Web Speech API**.
+
+- **Voice Navigation:** "Open Dashboard", "Show SOS", "Go to Inventory".
+- **Quick Actions:** "New Bill", "Open Scanner", "Scroll Down".
+- **Interactive Overlay:** Real-time transcript visualization.
+
+### 🔍 Enhanced AI QR Scanner
+
+Found in Hospital and Pharmacy portals.
+
+- **Demo Mode:** Generates random medicine data (Name, Brand, Batch, MFG, EXP).
+- **Manual Verification:** Fallback trigger if camera usage is not possible.
+- **Link Detection:** Automatically identifies URLs in QR codes and provides a "Visit Link" button inside the AI results modal.
 
 ---
 
+## ✨ Features by Role
+
 ### 🏥 Hospital Portal (`hospital.html`)
-| Tab | Feature |
-|---|---|
-| **Command Center** | Live revenue counter, safety alert count, daily AI scans, pending SOS count, recent invoices |
-| **OPD Management** | View & confirm patient appointments booked via the patient portal |
-| **SOS Requests** | Real-time emergency feed with patient GPS on map — Dispatch or Decline ambulance |
-| **Smart Inventory** | Add/remove medical supplies and equipment stock |
-| **Digital Notepad** | **Text Mode** for clinical notes + **Draw/Sketch Canvas** with Brush & Eraser |
-| **Staff Roster** | Add/remove Doctors, Nurses, Support staff with duty assignments |
-| **Hospital Profile** | Update name, email, photo; view GSTIN; live GPS map of hospital location |
+
+| Component             | Features                                                                 |
+| --------------------- | ------------------------------------------------------------------------ |
+| **AI Command Center** | **Voice-controlled navigation** and action execution.                    |
+| **SOS Dashboard**     | Live emergency monitoring with patient GPS mapping & ambulance dispatch. |
+| **Smart Billing**     | AI-assisted invoice generation with PDF export & email mirroring.        |
+| **OPD Matrix**        | Manage and verify patient appointments.                                  |
+| **Inventory & Staff** | Smart supply tracking + **Staff Portal Chat** for team communication.    |
+| **Digital Notepad**   | Text-based clinical notes & cross-platform drawing canvas.               |
+| **Bed Management**    | **Live Bed Inventory Survey** — Broadcast available beds per floor/room. |
 
 ---
 
 ### 👨‍⚕️ Clinic Portal (`client.html`)
-| Tab | Feature |
-|---|---|
-| **Digital Rx Pad** | Create digital prescriptions with medicine name, dosage, duration, instructions |
-| **Pending Appointments** | View & confirm clinic-type OPD bookings from patients |
-| **Submit to Pharmacy** | Send digital Rx directly to pharmacy order queue |
-| **Profile & Map** | Update doctor photo, name, email; live GPS map |
+
+- **Digital Rx Pad:** Create prescriptions with dosage and instructions.
+- **Pharmacy Submission:** Direct link to pharmacy inventory for fulfillments.
+- **OPD Queue:** View and manage clinic appointments.
 
 ---
 
 ### 💊 Pharmacy Portal (`pharmacy.html`)
-| Tab | Feature |
-|---|---|
-| **Dashboard Hub** | Today's total sales, pending orders count, low stock alerts, scan activity |
-| **Online Orders** | Manage incoming patient and clinic orders → Process → Dispatch → Deliver → Decline |
-| **Digital Billing** | Create itemized invoices with auto-total, download as PDF |
-| **Smart Inventory** | Add/remove medicines with quantity and price tracking |
-| **AI Vision Scanner** | Scan QR/barcodes on medicine labels using device camera |
-| **Pharmacy Profile** | Update store name, email, photo; view GSTIN; live GPS map |
+
+- **Order Lifecycle:** Process patient/clinic orders from "Pending" to "Delivered".
+- **Stock Control:** Maintain medicine inventory with low-stock alerts.
+- **AI Scanner:** Identify medicines and process billing quickly.
 
 ---
 
 ### 🧑‍🦱 Patient Portal (`patient.html`)
-| Feature | Details |
-|---|---|
-| **SOS Emergency** | One-tap SOS — sends GPS location to all hospitals; shows ambulance tracking map |
-| **OPD Booking** | Book appointments at Hospital or Clinic with date, time slot, age, reason; slot conflict prevention |
-| **Order Medicine** | Search and order medicines with quantity and prescription upload |
-| **Track Orders** | Real-time status tracking for pharmacy orders |
-| **Nearby Facilities** | List of nearby hospitals and pharmacies with distance and Google Maps directions |
-| **Document Vault** | Upload, store, and delete medical documents (PDFs, Images) securely |
-| **Profile** | Edit name, email, upload DP; view Aadhaar (masked); live GPS location on map |
-| **Logout** | Secure session termination |
+
+- **One-Tap SOS:** Instant emergency alert with location sharing.
+- **Booking Engine:** Conflict-free appointment slots at nearby facilities.
+- **Medicine Store:** Order prescriptions and track delivery in real-time.
+- **Health Vault:** Document storage with secure local encryption simulation.
 
 ---
 
-### 🏛️ Health Insurance Portal (`health insurance.html`)
-- View and manage insurance claims from patients
-- Approve or reject claims with notes
-- Claims history and policy management
+## 🛠️ Deep Tech Stack
 
----
+SafeScript AI uses a **Serverless Static Architecture** where all AI logic and data persistence happen directly in the browser.
 
-### 🏛️ Government Health Bodies Portal (`health bodies.html`)
-- Regional epidemic heatmap (disease distribution)
-- Narcotics surveillance — detect suspicious prescription volumes
-- Provider registry overview
-- Policy compliance monitoring
+### 🎨 Frontend & Design
 
----
+| Tech                  | Usage                                         |
+| --------------------- | --------------------------------------------- |
+| **HTML5**             | Semantic structure & modern web standards     |
+| **Tailwind CSS**      | Premium glassmorphism UI & responsive layouts |
+| **Vanilla JS (ES6+)** | Core application logic & state management     |
+| **Font Awesome 6**    | Pro-grade medical & navigational icons        |
+| **Plus Jakarta Sans** | Modern typography (Google Fonts)              |
 
-## 🛠️ Tech Stack
+### ⚙️ Persistence & "Backend" Logic
 
-| Technology | Purpose |
-|---|---|
-| **HTML5** | Page structure and semantics |
-| **Tailwind CSS** (CDN) | Utility-first responsive styling |
-| **Vanilla JavaScript** | All application logic, no frameworks |
-| **Plus Jakarta Sans** (Google Fonts) | Primary typography |
-| **Font Awesome 6** | Icons throughout the UI |
-| **html5-qrcode** | Camera-based QR/barcode scanning |
-| **jsPDF + AutoTable** | Client-side PDF generation for invoices |
-| **Google Maps Embed API** | GPS location display and SOS mapping |
-| **localStorage** | All data persistence (no backend required) |
-| **PowerShell** | Local static file server (`serve.ps1`) |
+| Tech                   | Usage                                         |
+| ---------------------- | --------------------------------------------- |
+| **localStorage API**   | Browser-based NoSQL-style data persistence    |
+| **JSON**               | Data serialization for roles and inventory    |
+| **PowerShell (.NET)**  | High-performance local dev server (Port 8050) |
+| **Role-Based Routing** | Logic-based portal access control             |
 
----
+### 🤖 Special AI & System APIs
 
-## 📁 Project Structure
-
-```
-safescript-ai/
-│
-├── index.html              # Entry point → redirects to login.html
-├── login.html              # Unified login/registration for all roles
-│
-├── hospital.html           # Hospital Command Center dashboard
-├── client.html             # Clinic / Doctor's Rx pad dashboard
-├── pharmacy.html           # Pharmacy management dashboard
-├── patient.html            # Patient mobile-first portal
-├── health insurance.html   # Health Insurance company portal
-├── health bodies.html      # Government regulatory portal
-│
-├── assets/                 # Static assets (images, icons, etc.)
-│   └── (images, logos)
-│
-├── serve.ps1               # Local PowerShell HTTP server (port 8001)
-├── .gitignore              # Git ignore rules
-└── README.md               # This file
-```
-
----
-
-## 🔄 User Flows
-
-### 🚑 SOS Emergency Flow
-```
-Patient (patient.html)
-  → Clicks SOS Button
-  → GPS coordinates captured
-  → Request saved to localStorage['safescript_sos_queue']
-  → Status: "Pending"
-
-Hospital (hospital.html → SOS Tab)
-  → Sees SOS card with patient name + live map
-  → Clicks "Dispatch Ambulance"
-  → Status updated to "Approved"
-
-Patient Portal
-  → Sees "Ambulance Dispatched" status
-  → Map shows ambulance approaching
-```
-
-### 💊 Prescription Flow
-```
-Clinic Doctor (client.html)
-  → Fills Digital Rx Pad (medicine, dosage, duration)
-  → Clicks "Submit to Pharmacy"
-  → Order saved to localStorage['pharmacy_orders']
-
-Pharmacy (pharmacy.html → Online Orders)
-  → Sees new order with status "Pending"
-  → Clicks Process → Out for Delivery → Delivered
-
-Patient (patient.html → Track Orders)
-  → Sees real-time status changes
-```
-
-### 📅 OPD Booking Flow
-```
-Patient (patient.html)
-  → Selects Hospital OPD or Clinic
-  → Picks date, time slot (conflict-checked), reason, age
-  → Booking saved to localStorage['safescript_appointments']
-
-Hospital/Clinic
-  → Sees appointment in OPD tab
-  → Clicks "Confirm" to verify
-```
-
----
-
-## 🔐 ID Validation Rules
-
-| User Role | ID Type | Format |
-|---|---|---|
-| Patients & Caregivers | Aadhaar Number | 12 digits numeric |
-| Hospitals | GSTIN | 15 alphanumeric characters |
-| Clinics | GSTIN | 15 alphanumeric characters |
-| Pharmacists | GSTIN | 15 alphanumeric characters |
-| Health Insurance Companies | GSTIN | 15 alphanumeric characters |
-| Government Health Bodies | Government ID | 15 alphanumeric characters |
+| Tech                  | Usage                                            |
+| --------------------- | ------------------------------------------------ |
+| **Web Speech API**    | Voice-to-Command AI engine (`SpeechRecognition`) |
+| **html5-qrcode**      | Real-time computer vision for medicine scanning  |
+| **jsPDF / AutoTable** | Client-side report & invoice PDF generation      |
+| **EmailJS SDK**       | Automated PDF mirroring to supervisor email      |
+| **HTML5 Canvas API**  | Digital clinical sketching & signature capture   |
+| **Google Maps API**   | Live GPS-tagged SOS and facility mapping         |
 
 ---
 
 ## 💾 Data Storage
 
-All data is stored in the browser's **localStorage**. No internet connection required after initial load from server.
-
-| Key | Used By | Contains |
-|---|---|---|
-| `safescript_user` | All portals | Current logged-in user object |
-| `safescript_sos_queue` | Patient + Hospital | SOS emergency requests |
-| `safescript_appointments` | Patient + Hospital + Clinic | OPD bookings |
-| `pharmacy_orders` | Patient + Pharmacy + Clinic | Medicine orders |
-| `safescript_patient_orders` | Patient portal | Patient-side order tracking |
-| `safescript_inventory` | Pharmacy | Pharmacy stock list |
-| `h_inventory` | Hospital | Hospital medical supply stock |
-| `h_staff` | Hospital | Staff roster |
-| `h_bills` | Hospital | Billing/invoice history |
-| `h_alerts` | Hospital | Safety alert counter |
-| `h_scs` | Hospital | Daily scan counter |
-| `h_note_txt` | Hospital | Notepad text content |
-| `h_note_cvs` | Hospital | Notepad canvas drawing (base64) |
-| `safescript_pharma_logs` | Pharmacy | Pharmacy sales log |
-| `pharma_scans` | Pharmacy | QR scan counter |
-
-> ⚠️ **Warning**: Clearing browser data / cache will permanently delete all records. For production use, migrate to a cloud database (Firebase/Supabase).
+| Key                       | Contains                         |
+| ------------------------- | -------------------------------- |
+| `safescript_sos_queue`    | SOS emergency requests           |
+| `safescript_appointments` | OPD bookings                     |
+| `pharmacy_orders`         | Rx fulfillment requests          |
+| `h_bed_inv`               | Live hospital bed data           |
+| `h_staff_chat`            | Internal hospital communications |
+| `h_inventory`             | Medical supply lists             |
+| `h_bills`                 | Billing and invoice history      |
+| `safescript_insurance_history` | Insurance claims audit registry |
+| `insurance_dataset.csv`   | Actuarial data source for analysis |
 
 ---
 
-## 🗺️ Roadmap
+## 👤 Team & Developer
 
-### Phase 1 — Current (MVP) ✅
-- [x] Role-based login with ID validation
-- [x] Hospital Command Center (SOS, OPD, Inventory, Staff, Notepad, Billing)
-- [x] Clinic Rx Pad with pharmacy submission
-- [x] Pharmacy order lifecycle management
-- [x] Patient portal (SOS, OPD, Orders, Vault, Nearby)
-- [x] Insurance and Govt portals
-- [x] Local server (`serve.ps1`)
-
-### Phase 2 — Backend Integration 🔜
-- [ ] Firebase/Supabase real-time database
-- [ ] Multi-user concurrent sessions
-- [ ] Real OTP via Twilio SMS API
-- [ ] EmailJS notifications for bookings
-
-### Phase 3 — Advanced Features 🔜
-- [ ] AI-powered prescription analysis
-- [ ] Drug interaction checker
-- [ ] Telemedicine video consultation
-- [ ] Insurance claim processing with OCR
-- [ ] Government drug surveillance ML model
-- [ ] Mobile app (React Native / Flutter)
-
-### Phase 4 — Deployment 🔜
-- [ ] Vercel / Netlify deployment
-- [ ] Custom domain (safescript.ai)
-- [ ] HTTPS & security hardening
-- [ ] PWA (Progressive Web App) support
-
----
-
-## 👤 Developer
-
-**Ayush Dham**  
+**Hackathon Team ERROR-404**
+**Ayush Kumar**  
 📧 ayushdham405@gmail.com  
 🏫 Project: SafeScript AI — Healthcare Innovation
 
@@ -302,9 +178,4 @@ All data is stored in the browser's **localStorage**. No internet connection req
 
 ## 📄 License
 
-This project is built for educational and demonstration purposes.  
-© 2026 SafeScript AI. All rights reserved.
-
----
-
-> 🔑 **Quick Start**: Run `serve.ps1` → Open `http://localhost:8001` → Register with OTP `123456` → Explore your role dashboard!
+© 2026 SafeScript AI. All rights reserved. Built for educational innovation.
