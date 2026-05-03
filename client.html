@@ -16,9 +16,12 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .sidebar-item.active { background-color: #2563eb; color: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
         .sidebar-item.active i { color: white; }
-    </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body class="bg-[#F1F5F9] text-slate-900">
+    <!-- Multilingual Dropdown -->
+
+    <div id="google_translate_element" class="hidden"></div>
 
     <div class="flex min-h-screen">
         <aside class="w-72 bg-white border-r border-slate-200 hidden lg:flex flex-col">
@@ -32,6 +35,21 @@
                 </div>
             </div>
 
+            <div class="px-4 mb-2">
+                <select onchange="changeGTranslate(this.value)" class="w-full px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 outline-none hover:border-blue-400 transition-colors shadow-sm cursor-pointer hide-arrow" style="-webkit-appearance: none; appearance: none;">
+                    <option value="en" selected>English 🇬🇧</option>
+                    <option value="hi">हिंदी (Hindi)</option>
+                    <option value="mai">मैथिली (Maithili)</option>
+                    <option value="bho">भोजपुरी (Bhojpuri)</option>
+                    <option value="bn">বাংলা (Bengali)</option>
+                    <option value="te">తెలుగు (Telugu)</option>
+                    <option value="or">ଓଡ଼ିଆ (Oriya)</option>
+                    <option value="mr">मराठी (Marathi)</option>
+                    <option value="gu">ગુજરાતી (Gujarati)</option>
+                    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                </select>
+            </div>
+
             <nav class="flex-1 px-4 space-y-2 mt-4 overflow-y-auto w-full">
                 <button onclick="switchTab('rx-pad', this)" class="sidebar-item active w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-500 font-semibold transition-all">
                     <i class="fa-solid fa-pen-to-square w-5 text-center"></i>
@@ -41,15 +59,15 @@
                     <i class="fa-solid fa-user-doctor w-5 text-center text-blue-400"></i>
                     Profile & Map
                 </button>
-                <button class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl transition-all opacity-50 cursor-not-allowed">
+                <button onclick="switchTab('ehr', this)" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl transition-all">
                     <i class="fa-regular fa-folder-open w-5 text-center text-blue-400"></i>
                     Patient EHR
                 </button>
-                <button class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl transition-all opacity-50 cursor-not-allowed">
+                <button onclick="switchTab('appt', this)" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl transition-all">
                     <i class="fa-solid fa-calendar-check w-5 text-center text-orange-400"></i>
                     Appt Booking
                 </button>
-                <button class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl transition-all opacity-50 cursor-not-allowed">
+                <button onclick="switchTab('billing', this)" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl transition-all">
                     <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-emerald-500"></i>
                     Digital Billing
                 </button>
@@ -111,9 +129,13 @@
                         <span class="rx-symbol">Rx</span>
                         <h3 class="text-2xl font-black text-blue-900 mt-2">SafeHealth Multispecialty</h3>
                         <p class="text-slate-400 text-sm font-semibold italic flex items-center gap-2 mt-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                             Verified Digital Provider
                         </p>
+                        <!-- Email Link Status -->
+                        <div class="mt-2 flex items-center gap-1.5 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 w-fit">
+                            <i class="fas fa-link text-[8px] text-emerald-600"></i>
+                            <span class="text-[8px] font-black text-emerald-600 uppercase tracking-tighter">Linked: ayushdham405@gmail.com</span>
+                        </div>
                     </div>
                     <div class="text-right">
                         <p class="font-bold text-slate-800">Reg No: MC-99231-A</p>
@@ -190,6 +212,36 @@
             </div>
             
             </div> <!-- End rx-pad -->
+
+            <!-- EHR Content -->
+            <div id="ehr" class="tab-content max-w-5xl mx-auto pb-10">
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-10 text-center">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 flex items-center justify-center gap-3"><i class="fa-regular fa-folder-open text-blue-400"></i> Patient EHR</h2>
+                    <p class="text-slate-500 font-bold mb-8">Access complete Electronic Health Records linked to Aadhar seamlessly.</p>
+                    <div class="max-w-md mx-auto space-y-4">
+                        <input type="text" placeholder="Enter Patient Aadhar / ID" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:border-blue-500">
+                        <button onclick="alert('EHR Records Fetched!')" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700">Fetch History</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appt Content -->
+            <div id="appt" class="tab-content max-w-5xl mx-auto pb-10">
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-10 text-center">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 flex items-center justify-center gap-3"><i class="fa-solid fa-calendar-check text-orange-400"></i> Appt Booking</h2>
+                    <p class="text-slate-500 font-bold mb-8">Manage incoming clinic walk-in appointments.</p>
+                    <button onclick="alert('Feature Active. No walk-ins right now.')" class="bg-orange-500 text-white px-8 py-4 rounded-xl font-black shadow-lg shadow-orange-200 hover:bg-orange-600">View Schedule</button>
+                </div>
+            </div>
+
+            <!-- Billing Content -->
+            <div id="billing" class="tab-content max-w-5xl mx-auto pb-10">
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-10 text-center">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 flex items-center justify-center gap-3"><i class="fa-solid fa-file-invoice-dollar text-emerald-500"></i> Digital Billing</h2>
+                    <p class="text-slate-500 font-bold mb-8">Generate paperless receipts for consultations.</p>
+                    <button onclick="alert('Billing System Initialized.')" class="bg-emerald-500 text-white px-8 py-4 rounded-xl font-black shadow-lg shadow-emerald-200 hover:bg-emerald-600">Create Invoice</button>
+                </div>
+            </div>
 
             <!-- Profile Content -->
             <div id="profile" class="tab-content max-w-2xl mx-auto pb-10">
@@ -334,6 +386,20 @@
                     </tr>`;
                 });
             }
+        async function sendEmailNotification(subject, message) {
+            const defaultSvc = "service_0luhpsn";
+            const defaultTmp = "template_q1sc05n";
+            let pubKey = localStorage.getItem('safescript_emailjs_pub');
+            if (!pubKey || pubKey === "N/A" || pubKey === "") return;
+            try {
+                emailjs.init(pubKey);
+                await emailjs.send(defaultSvc, defaultTmp, {
+                    to_email: "ayushdham405@gmail.com",
+                    subject: subject,
+                    message: message,
+                    user_name: document.getElementById('user-display-name')?.innerText || "Doctor"
+                });
+            } catch (err) { console.warn("Clinic Mail Error:", err); }
         }
 
         function confirmAppointment(id) {
@@ -378,6 +444,7 @@
             });
             localStorage.setItem('safescript_hospital_stock', JSON.stringify(stock));
 
+            sendEmailNotification("New Clinic Prescription Issued", `Doctor issued RX: ${order.id} for ${order.patientName}. Items: ${medName}. Tracking to ayushdham405@gmail.com`);
             alert('Prescription sent to Pharmacy successfully. Also registered in Hospital Inventory as Pending.');
         }
 
@@ -392,5 +459,26 @@
             loadClinicAppointments();
         };
     </script>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,hi,mai,bho,te,bn,or,mr,gu,pa,ur', autoDisplay: false}, 'google_translate_element');
+        }
+        function changeGTranslate(lang) {
+            var selectField = document.querySelector(".goog-te-combo");
+            if (selectField) {
+                selectField.value = lang;
+                selectField.dispatchEvent(new Event("change"));
+            }
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <style>
+        .goog-te-gadget-simple { background-color: transparent !important; border: none !important; padding: 4px !important; border-radius: 8px !important; font-size: 10px !important; font-weight: bold !important; }
+        .goog-te-gadget-icon { display: none !important; }
+        .goog-te-gadget-simple img { display: none !important; }
+        .goog-te-combo { border: none !important; outline: none !important; background: transparent !important; font-weight: 800 !important; color: #0f766e !important; cursor: pointer; }
+        body { top: 0 !important; }
+        .goog-te-banner-frame { display: none !important; }
+    </style>
 </body>
 </html>
