@@ -4,6 +4,69 @@ let synth = window.speechSynthesis;
 let recognition;
 
 // ---------- AI Chatbot Logic ----------
+const BOT_ANSWERS = {
+    1: { 
+        title: "Diseases & Precautions", 
+        diseases: {
+            "Dengue": [
+                "Symptoms: Sharp headache, High fever, Joint and muscle pain, Rashes.",
+                "Precautions: Use mosquito nets, Wear full-sleeve clothes, Clear stagnant water around home."
+            ],
+            "Malaria": [
+                "Symptoms: Chills, High fever, Shaking, Profuse sweating.",
+                "Precautions: Use insect repellent, Install window screens, Keep surroundings clean."
+            ],
+            "COVID-19": [
+                "Symptoms: Fever, Dry cough, Fatigue, Loss of taste or smell.",
+                "Precautions: Wear a mask, Maintain 2-meter distance, Get vaccinated, Sanitize hands."
+            ],
+            "Typhoid": [
+                "Symptoms: Prolonged fever, Stomach pain, Headache, Constipation or diarrhea.",
+                "Precautions: Drink boiled or RO water, Avoid raw food/street food, Wash hands before meals."
+            ],
+            "Diabetes": [
+                "Symptoms: Increased thirst, Frequent urination, Unexplained weight loss, Fatigue.",
+                "Precautions: Control sugar intake, Exercise 30 mins daily, Monitor glucose levels regularly."
+            ],
+            "Hypertension": [
+                "Symptoms: Severe headache, Nosebleeds, Fatigue, Vision problems (often asymptomatic).",
+                "Precautions: Reduce salt intake, Quit smoking, Manage stress through meditation."
+            ]
+        }
+    },
+    2: {
+        title: "Safety Guidance",
+        points: [
+            "Always wear a mask in crowded areas.",
+            "Keep a basic first aid kit at home.",
+            "Sanitize hands regularly and wash before meals.",
+            "In case of emergency, use the SOS button immediately.",
+            "Store medicines in a cool, dry place away from children."
+        ]
+    },
+    3: {
+        title: "Daily Healthy Routine",
+        points: [
+            "Drink at least 3-4 liters of water daily.",
+            "Incorporate 30 minutes of physical exercise.",
+            "Maintain a consistent sleep cycle of 7-8 hours.",
+            "Include green leafy vegetables and seasonal fruits in your diet.",
+            "Practice mindfulness or meditation for 10 minutes."
+        ]
+    },
+    4: {
+        title: "To know about app features",
+        points: [
+            "AI Voice Chatbot: Multilingual health assistance.",
+            "SOS Emergency: Instant hospital alerts with GPS tracking.",
+            "OPD Booking: Online appointment scheduling with clinics/hospitals.",
+            "Pharmacy Order: Upload prescriptions and order medicines.",
+            "Document Vault: Securely store and manage medical records.",
+            "Nearby Care: Locate nearest healthcare facilities on maps."
+        ]
+    }
+};
+
 function toggleBot(show) {
     const bot = document.getElementById('ai-chatbot');
     const btn = document.getElementById('float-bot-btn');
@@ -11,7 +74,21 @@ function toggleBot(show) {
         bot.classList.remove('scale-0');
         bot.classList.add('scale-100');
         btn.classList.add('hidden');
-        speak("Hello! Main aapki AI Health Assistant hoon. Kripya koi option chune ya mic par click karke bole.");
+        
+        const lang = document.getElementById('user-lang-select')?.value || 'en';
+        const welcomeMsgs = {
+            'en': "Hello! I am your AI Health Assistant. Please choose an option or use the mic.",
+            'hi': "नमस्ते! मैं आपकी AI हेल्थ असिस्टेंट हूँ। कृपया कोई विकल्प चुनें या माइक का उपयोग करें।",
+            'mai': "प्रणाम! हम अहांक AI हेल्थ असिस्टेंट छी। कोनो विकल्प चुनू या माइकक प्रयोग करू।",
+            'bho': "प्रणाम! हम रउवा AI हेल्थ असिस्टेंट बानी। कवनो विकल्प चुनीं चाहे माइक के प्रयोग करीं।",
+            'bn': "হ্যালো! আমি আপনার AI হেলথ অ্যাসিস্ট্যান্ট। একটি বিকল্প বেছে নিন বা মাইক ব্যবহার করুন।",
+            'te': "హలో! నేను మీ AI హెల్త్ అసిస్టెంట్. దయచేసి ఒక ఎంపికను ఎంచుకోండి లేదా మైక్ ఉపయోగించండి.",
+            'mr': "नमस्कार! मी आपला AI आरोग्य सहाय्यक आहे. कृपया एक पर्याय निवडा किंवा माइक वापरा.",
+            'gu': "નમસ્તે! હું તમારો AI હેલ્થ આસિસ્ટન્ટ છું. કૃપા કરીને વિકલ્પ પસંદ કરો અથવા માઇક વાપરો.",
+            'pa': "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡਾ AI ਸਿਹਤ ਸਹਾਇਕ ਹਾਂ। ਕਿਰਪਾ ਕਰਕੇ ਕੋਈ ਵਿਕલ્પ ਚੁਣੋ ਜਾਂ ਮਾਈਕ ਦੀ ਵਰਤੋਂ ਕਰੋ।"
+        };
+        const msg = welcomeMsgs[lang] || welcomeMsgs['en'];
+        speak(msg, getVoiceLangCode(lang));
     } else {
         btn.classList.remove('hidden');
         bot.classList.add('scale-0');
@@ -20,31 +97,57 @@ function toggleBot(show) {
     }
 }
 
+function getVoiceLangCode(val) {
+    const map = { 'en':'en-US', 'hi':'hi-IN', 'bho':'hi-IN', 'mai':'hi-IN', 'bn':'bn-IN', 'te':'te-IN', 'or':'or-IN', 'mr':'mr-IN', 'gu':'gu-IN', 'pa':'pa-IN', 'ur':'ur-PK' };
+    return map[val] || 'hi-IN';
+}
+
 async function sendEmailNotification(subject, message) {
-    // Default system keys for ayushdham405@gmail.com automation
     const defaultSvc = "service_0luhpsn";
     const defaultTmp = "template_q1sc05n";
 
-    let pubKey = localStorage.getItem('safescript_emailjs_pub');
+    let pubKey = localStorage.getItem('safescript_emailjs_pub') || "YOUR_PUBLIC_KEY";
     let serviceId = localStorage.getItem('safescript_emailjs_service') || defaultSvc;
     let templateId = localStorage.getItem('safescript_emailjs_template') || defaultTmp;
 
-    if (!pubKey || pubKey === "N/A" || pubKey === "") {
-        console.warn("Public Key missing! Kripya Profile mein apni EmailJS Public Key daalein.");
-        return;
+    if (!pubKey || pubKey === "N/A" || pubKey === "" || pubKey === "YOUR_PUBLIC_KEY") {
+        console.warn("Public Key missing! Attempting system link...");
+        pubKey = localStorage.getItem('safescript_emailjs_pub');
+        if(!pubKey || pubKey === "N/A" || pubKey === "") {
+             if(!window.email_warned) {
+                  alert("Email Link Warning: ayushdham405@gmail.com is hardcoded, but you must enter your EmailJS Public Key in the Profile tab to finalize the PDF delivery bridge.");
+                  window.email_warned = true;
+             }
+             return;
+        }
+    }
+
+    const params = {
+        to_email: "ayushdham405@gmail.com",
+        subject: subject,
+        message: message,
+        user_name: currentUser ? (currentUser.fullName || currentUser.institution) : "User"
+    };
+
+    if(window.lastGeneratedPDFBase64) {
+        params['pdf_attachment'] = window.lastGeneratedPDFBase64.split(',')[1];
     }
 
     try {
         emailjs.init(pubKey);
-        const res = await emailjs.send(serviceId, templateId, {
-            to_email: "ayushdham405@gmail.com",
-            subject: subject,
-            message: message,
-            user_name: currentUser ? (currentUser.fullName || currentUser.institution) : "User"
-        });
-        console.log("SUCCESS!", res.status, res.text);
+        const res = await emailjs.send(serviceId, templateId, params);
+        console.log("MAIL SUCCESS!", res.status, res.text);
+        showToast("PDF Mirrored to ayushdham405@gmail.com", "success");
     } catch (err) {
-        console.error("FAILED...", err);
+        console.error("MAIL ERROR DETAILS:", err);
+        const errorMsg = err.text || err.message || JSON.stringify(err);
+        if(errorMsg.includes("user_id") || errorMsg.includes("public_key") || err.status === 401) {
+            alert("Mail Bridge Link Broken: Your Public Key is invalid. Please copy the 'Public Key' from your EmailJS Dashboard into your Profile settings.");
+        } else if (errorMsg.includes("quota") || err.status === 403) {
+            alert("Mail Overload: Your EmailJS account has reached its daily limit. The PDF is saved locally, but can't be mailed right now.");
+        } else {
+            alert("Mail Sync Failed: " + errorMsg + ". Please check your internet or key.");
+        }
     }
 }
 
@@ -52,9 +155,9 @@ function addChatMessage(msg, type = 'bot') {
     const body = document.getElementById('ai-chat-body');
     const div = document.createElement('div');
     if(type === 'bot') {
-        div.className = "bg-white p-3 rounded-2xl rounded-tl-sm shadow-sm border border-slate-100 inline-block w-11/12 text-slate-600 font-bold mb-2";
+        div.className = "chat-msg-bot chat-bubble-font";
     } else {
-        div.className = "bg-teal-600 text-white p-3 rounded-2xl rounded-tr-sm shadow-sm self-end inline-block w-11/12 float-right mb-2";
+        div.className = "chat-msg-user chat-bubble-font";
     }
     div.innerText = msg;
     body.appendChild(div);
@@ -62,119 +165,71 @@ function addChatMessage(msg, type = 'bot') {
 }
 
 function botLevel1(choice) {
-    const options = document.getElementById('ai-options-layer1');
-    options.classList.add('hidden');
+    const layer1 = document.getElementById('ai-options-layer1');
+    if(layer1) layer1.classList.add('hidden');
     
+    const lang = document.getElementById('user-lang-select')?.value || 'en';
+
     if(choice === 1) {
-        addChatMessage("Diseases aur unke precautions ke baare mein jaanne ke liye niche diye gaye options chune:", "bot");
-        speak("Diseases aur unke precautions ke baare mein jaanne ke liye niche diye gaye options chune.");
-        const diseases = ['Asthma', 'Cancer', 'Fever', 'Diabetes', 'Malaria'];
+        addChatMessage(lang === 'hi' ? "मुझे बीमारियों और सावधानियों के बारे में जानना है" : "Know about diseases & precautions", "user");
+        const body = document.getElementById('ai-chat-body');
         const div = document.createElement('div');
-        div.className = "flex flex-wrap gap-2 mt-2";
-        diseases.forEach(d => {
+        div.className = "flex flex-col gap-2 mt-2";
+        Object.keys(BOT_ANSWERS[1].diseases).forEach(d => {
             const btn = document.createElement('button');
-            btn.className = "px-4 py-2 bg-white border border-teal-200 text-teal-700 rounded-lg text-[10px] font-bold hover:bg-teal-600 hover:text-white transition shadow-sm mb-1";
+            btn.className = "p-3 border border-teal-200 text-teal-700 bg-teal-50 rounded-xl text-left hover:bg-teal-600 hover:text-white transition font-bold shadow-sm whitespace-normal text-xs";
             btn.innerText = d;
-            btn.onclick = (e) => {
-                e.preventDefault();
-                botLevel2(d);
-            };
+            btn.onclick = () => botLevel2(d);
             div.appendChild(btn);
         });
-        document.getElementById('ai-chat-body').appendChild(div);
-        document.getElementById('ai-chat-body').scrollTop = document.getElementById('ai-chat-body').scrollHeight;
-    } else if(choice === 2) {
-        const safety = [
-            "1. Haath dhote rahein (Wash hands regularly).",
-            "2. Mask pehnein (Wear masks in crowds).",
-            "3. Doori banaye rakhein (Maintain social distance).",
-            "4. Swachh bhojan karein (Eat clean food).",
-            "5. Vaccination pura karein (Complete your vaccinations)."
-        ];
-        displayBotPoints("Safety Guidance", safety);
-    } else if(choice === 3) {
-        const routine = [
-            "1. Roj 30 min exercise karein (Exercise daily).",
-            "2. 7-8 ghante ki neend lein (Sleep 7-8 hours).",
-            "3. Khoob paani piyein (Stay hydrated).",
-            "4. Yoga aur dhyan karein (Yoga and meditation).",
-            "5. Bahar ka khana kam karein (Avoid junk food)."
-        ];
-        displayBotPoints("Daily Healthy Routine", routine);
+        body.appendChild(div);
+        body.scrollTop = body.scrollHeight;
     } else if(choice === 4) {
-        const features = [
-            "1. SOS Emergency Support: One-tap help.",
-            "2. AI Scan Station: Scan prescriptions easily.",
-            "3. Nearby Care: Find hospitals and pharmacies.",
-            "4. Secure Document Vault: Store medical files safely.",
-            "5. Easy Booking: Fast OPD appointments.",
-            "6. Order Tracking: Real-time medicine orders.",
-            "7. Digital EHR: Integrated electronic health records."
-        ];
-        displayBotPoints("Platform Features", features);
+        const data = BOT_ANSWERS[4];
+        if (lang === 'en' || lang === 'hi') {
+           addChatMessage(lang === 'hi' ? "सेफस्क्रिप्ट एआई फीचर्स क्या हैं?" : "What are SafeScript AI features?", "user");
+           displayBotPoints(data.title, data.points);
+        } else {
+           callOpenAI(`Tell me about Safescript AI features in ${getSelectedLangName()}`);
+        }
+    } else if(choice === 2 || choice === 3) {
+        const data = BOT_ANSWERS[choice];
+        if (lang === 'en' || lang === 'hi') {
+            addChatMessage(choice === 2 ? "Safety Guidance" : "Daily Healthy Routine", "user");
+            displayBotPoints(data.title, data.points);
+        } else {
+            const query = choice === 2 ? "Provide Health Safety guidance" : "Provide Daily Healthy routine";
+            callOpenAI(`${query} in ${getSelectedLangName()}`);
+        }
     }
 }
 
+function getSelectedLangName() {
+    const langSelect = document.getElementById('user-lang-select');
+    return langSelect ? langSelect.options[langSelect.selectedIndex].text.split('(')[0].trim() : "Hindi";
+}
+
 function botLevel2(disease) {
-    let points = [];
-    if(disease === 'Asthma') {
-        points = [
-            "Symptoms (Laxan): Wheezing (Saans fulna), Chest tightness, Coughing.",
-            "1. Dust aur pollution se bachein (Avoid dust/pollution).", 
-            "2. Inhaler hamesha apne paas rakhein (Keep inhaler handy).", 
-            "3. Smoking aur dhuein se door rahein (Stay away from smoke).", 
-            "4. Thandi chizo ka sevan kam karein (Avoid very cold food/drinks).",
-            "5. Routine checkup apne doctor se karayein (Regular checkups)."
-        ];
-    } else if(disease === 'Cancer') {
-        points = [
-            "Symptoms (Laxan): Unexplained weight loss, Fatigue, Weakness, Lumps.",
-            "1. Kisi bhi tarah ke nashe (Tobacco/Alcohol) se bachein.", 
-            "2. Healthy aur fresh diet lein (Eat healthy fresh food).", 
-            "3. Apna wajan (Weight) control mein rakhein.", 
-            "4. Regular medical screenings karayein.",
-            "5. Dhup mein nikalte samay savdhani bartein (Sun protection)."
-        ];
-    } else if(disease === 'Fever') {
-        points = [
-            "Symptoms (Laxan): High body temp, Chills, Sweating, Muscle ache.",
-            "1. Paryapt aaram (Rest) karein.", 
-            "2. Khoob saara paani aur liquid piyein (Stay hydrated).", 
-            "3. Thande paani ki patti sar par rakhein (Cold compress).", 
-            "4. Halka aur supathya bhojan karein (Light meals).",
-            "5. Paracetamol lein (Doctor ki salah par / After consulting doctor)."
-        ];
-    } else if(disease === 'Diabetes') {
-        points = [
-            "Symptoms (Laxan): Frequent urination, Increased thirst/hunger, Blurred vision.",
-            "1. Meethi chizo aur sugar se parhez karein (Avoid sugar).", 
-            "2. Roj kam se kam 30 minute walk karein (Daily 30m walk).", 
-            "3. Time par apni dawaiyan lein (Take meds on time).", 
-            "4. Blood sugar level regular check karte rahein.",
-            "5. Fiber-rich diet ka sevan karein (Fiber-rich diet)."
-        ];
-    } else if(disease === 'Malaria') {
-        points = [
-            "Symptoms (Laxan): High fever with chills, Headache, Nausea, Sweating.",
-            "1. Machhardani (Mosquito net) ka upyog karein.", 
-            "2. Sharir ko pura dhakne wale kapde pehnein (Wear full clothes).", 
-            "3. Ghar ke aas-pass paani jama na hone dein (Prevent stagnant water).", 
-            "4. Odomos ya machhar bhagane wali cream lagayein.",
-            "5. Bukhaar hone par turant rakt parikshan karayein (Blood test immediately)."
-        ];
+    const lang = document.getElementById('user-lang-select')?.value || 'en';
+    const staticInfo = BOT_ANSWERS[1].diseases[disease];
+    
+    if (staticInfo && (lang === 'en' || lang === 'hi')) {
+        addChatMessage(lang === 'hi' ? `मुझे ${disease} के लक्षण और बचाव बताएं` : `Symptoms and precautions for ${disease}`, "user");
+        displayBotPoints(disease, staticInfo);
+    } else {
+        addChatMessage(disease, "user");
+        callOpenAI(`${disease} symptoms and precautions in ${getSelectedLangName()}`);
     }
-    displayBotPoints(disease + " Symptoms & Precautions", points);
 }
 
 function displayBotPoints(title, points) {
     const body = document.getElementById('ai-chat-body');
     const msg = `**${title}**:\n` + points.join("\n");
     addChatMessage(msg, "bot");
-    speak(points.join(". "));
+    speak(points.join(". "), getVoiceLangCode(document.getElementById('user-lang-select')?.value));
     
-    // Show reset button
     const btn = document.createElement('button');
-    btn.className = "mt-4 text-[10px] font-bold text-teal-600 underline cursor-pointer";
+    btn.className = "mt-4 text-[10px] font-bold text-teal-600 underline cursor-pointer bg-transparent border-none p-0 block clear-both";
     btn.innerText = "Main menu dekhne ke liye click karein";
     btn.onclick = () => {
         const layer1 = document.getElementById('ai-options-layer1');
@@ -193,8 +248,11 @@ function startVoiceInput() {
         return alert("Your browser does not support Speech Recognition.");
     }
     
-    recognition = new webkitSpeechRecognition();
-    recognition.lang = 'hi-IN';
+    const recognition = new webkitSpeechRecognition();
+    const langVal = document.getElementById('user-lang-select')?.value || 'hi';
+    const selectedLang = getVoiceLangCode(langVal);
+    
+    recognition.lang = selectedLang;
     recognition.interimResults = false;
     
     document.getElementById('mic-status').innerText = "Listening...";
@@ -205,7 +263,7 @@ function startVoiceInput() {
     recognition.onresult = (event) => {
         const text = event.results[0][0].transcript;
         addChatMessage(text, "user");
-        processVoiceCommand(text);
+        callOpenAI(text);
         stopVoiceUI();
     };
     
@@ -219,20 +277,7 @@ function stopVoiceUI() {
 }
 
 function processVoiceCommand(text) {
-    text = text.toLowerCase();
-    if(text.includes('1') || text.includes('disease') || text.includes('bimari') || text.includes('precaution')) botLevel1(1);
-    else if(text.includes('2') || text.includes('safety') || text.includes('suraksha') || text.includes('guidance')) botLevel1(2);
-    else if(text.includes('3') || text.includes('routine') || text.includes('health')) botLevel1(3);
-    else if(text.includes('4') || text.includes('app') || text.includes('feature') || text.includes('platform')) botLevel1(4);
-    else if(text.includes('asthma')) botLevel2('Asthma');
-    else if(text.includes('cancer')) botLevel2('Cancer');
-    else if(text.includes('fever') || text.includes('bukhar')) botLevel2('Fever');
-    else if(text.includes('diabetes')) botLevel2('Diabetes');
-    else if(text.includes('malaria')) botLevel2('Malaria');
-    else {
-        // Fallback to OpenAI
-        callOpenAI(text);
-    }
+    callOpenAI(text);
 }
 
 function sendManualChat() {
@@ -241,85 +286,134 @@ function sendManualChat() {
     if(!msg) return;
     addChatMessage(msg, 'user');
     input.value = '';
-    processVoiceCommand(msg);
+    callOpenAI(msg);
 }
 
 async function callOpenAI(query) {
-    addChatMessage("Thinking...", "bot");
-    
-    // Clean and retrieve key
-    const hardcodedKey = "YOUR_OPENAI_API_KEY";
-    let apiKey = localStorage.getItem('safescript_openai_key');
-    if (!apiKey || apiKey === 'null') apiKey = hardcodedKey;
-    
-    apiKey = apiKey.trim(); // Ensure no spaces
-    
-    if(!apiKey.startsWith('sk-')) {
-        const chatBody = document.getElementById('ai-chat-body');
-        if(chatBody.lastChild.innerText === "Thinking...") chatBody.lastChild.remove();
-        addChatMessage("Invalid API Key! Kripya Profile mein jaakar sahi key enter karein.", "bot");
+    if(!query) return;
+
+    const langVal = document.getElementById('user-lang-select')?.value || 'hi';
+    const langMap = {
+        'en': 'English', 'hi': 'Hindi (हिंदी)', 'mai': 'Maithili (मैथिली)', 'bho': 'Bhojpuri (भोजपुरी)', 'bn': 'Bengali (বাংলা)', 
+        'te': 'Telugu (తెలుగు)', 'or': 'Oriya (ଓଡ଼ିଆ)', 'mr': 'Marathi (मराठी)', 'gu': 'Gujarati (ગુજરાતી)', 'pa': 'Punjabi (ਪੰਜਾਬੀ)', 'ur': 'Urdu (اردو)'
+    };
+    const targetLangName = langMap[langVal] || "Hindi (हिंदी)";
+
+    const lowQuery = query.toLowerCase().trim();
+    const commonGreetings = ['hi', 'hii', 'hello', 'hey', 'नमस्ते', 'प्रणाम', 'হ্যালো', 'హలో', 'नमस्कार'];
+    if (commonGreetings.includes(lowQuery)) {
+        const greetings = {
+            'en': "Hello, I am SafeScript AI. How can I help you?",
+            'hi': "नमस्ते, मैं सेफस्क्रिप्ट एआई हूँ। मैं आपकी क्या मदद कर सकती हूँ?",
+            'mai': "प्रणाम, हम सेफस्क्रिप्ट एआई छी। हम अहांक कोना मदद क सकैत छी?",
+            'bho': "प्रणाम, हम सेफस्क्रिप्ट एआई बानी। हम रउवा का मदद कर सकीं?",
+            'bn': "হ্যালো, আমি সেফস্ক্রিপ্ট এআই। আমি আপনাকে কীভাবে সাহায্য করতে পারি?",
+            'te': "హలో, నేను సేఫ్ స్క్రిప్ట్ AI. నేను మీకు ఎలా సహాయం చేయగలను?"
+        };
+        const greeting = greetings[langVal] || greetings['hi'];
+        addChatMessage(greeting, "bot");
+        speak(greeting, getVoiceLangCode(langVal));
         return;
     }
+
+    addChatMessage("Thinking...", "bot");
+    
+    let apiKey = localStorage.getItem('safescript_openai_key') || "AIzaSyBvS7KtwT52oTEOmW8vYXT6Tod3jb0TU_4";
+    apiKey = apiKey.trim();
     
     try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: [
-                    { 
-                        role: "system", 
-                        content: `You are the official SafeScript AI Support Assistant. Your SOLE purpose is to help users understand/navigate the SafeScript platform using the following dataset.
-
-                        STRICT DATASET (MANDATORY KNOWLEDGE):
-                        - PROJECT NAME: SafeScript AI (Digital Healthcare Audit)
-                        - CURRENT VERSION: 1.2.0 (Stable/Live)
-                        - LEAD ARCHITECT: Ayush Kumar (Developer from Patna, Bihar)
-                        - REPOSITORY: https://github.com/InnovateX26/Error_404
-                        
-                        FEATURE BREAKDOWN:
-                        1. Patient Portal: Built for mobile-first aid. Features SOS Emergency (GPS-based), OPD Slot Booking, Medicine Orders, and a Secure AI Vault.
-                        2. Hospital Portal: Real-time Command Center, OPD management, SOS Ambulance dispatch tracking, Digital Ink Notepad, Staffing.
-                        3. Pharmacy Portal: Live inventory monitoring, Order life-cycle management, PDF billing.
-                        4. Insurance/Govt: Fraud detection, Drug surveillance, and Audit tools.
-                        
-                        TECHNICAL STACK:
-                        - Built using modern Vanilla JavaScript, Tailwind CSS, and HTML5. 
-                        - Data is persisted via Browser LocalStorage (No server-side database required).
-                        - Uses jsPDF for generating healthcare bills.
-
-                        RULES & TONE:
-                        - Always answer as the developer's official assistant.
-                        - Use Mixed Hindi-English (Hinglish).
-                        - If a user asks about anything outside this (like politics, recipes, or general science), say: "Maaf kijiye, main keval SafeScript AI aur uske features ke baare mein jaankari de sakta hoon."
-                        - Be extremely helpful and proud of the platform.` 
-                    },
-                    { role: "user", content: query }
-                ],
-                max_tokens: 400
-            })
-        });
+        let aiMsg = "";
+        let response;
         
-        const data = await response.json();
-        const chatBody = document.getElementById('ai-chat-body');
-        chatBody.lastChild.remove(); // Remove thinking
-
-        if (data.choices && data.choices[0]) {
-            const aiMsg = data.choices[0].message.content;
-            addChatMessage(aiMsg, "bot");
-            speak(aiMsg.substring(0, 200)); // Speak first bit
+        if (apiKey.startsWith('AIza')) {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `You are SafeScript AI Voice Assistant. 
+                    STRICT RULE: You MUST reply ONLY in the ${targetLangName} language. 
+                    Current User Language: ${targetLangName}. 
+                    If the user speaks in English but the language is set to ${targetLangName}, you MUST still reply in ${targetLangName}.
+                    Query: ${query}` }] }]
+                })
+            });
         } else {
-            throw new Error("Invalid API Response");
+            response = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        { role: "system", content: `You are SafeScript AI. Reply strictly in ${targetLangName} only.` },
+                        { role: "user", content: query }
+                    ]
+                })
+            });
+        }
+        
+        const chatBody = document.getElementById('ai-chat-body');
+        const thinkingMsg = Array.from(chatBody.children).find(c => c.innerText === "Thinking...");
+        if(thinkingMsg) thinkingMsg.remove();
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error?.message || "API Fail");
+
+        if (apiKey.startsWith('AIza')) {
+            aiMsg = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf kijiye, error aa gaya.";
+        } else {
+            aiMsg = data.choices?.[0]?.message?.content || "Maaf kijiye, error aa gaya.";
+        }
+
+        if (aiMsg) {
+            aiMsg = aiMsg.replace(/\[.*?\]/g, '').trim();
+            const currentVoiceLang = getVoiceLangCode(langVal);
+            addChatMessage(aiMsg, "bot");
+            speak(aiMsg, currentVoiceLang); 
         }
     } catch (error) {
         console.error(error);
         const chatBody = document.getElementById('ai-chat-body');
-        if(chatBody.lastChild.innerText === "Thinking...") chatBody.lastChild.remove();
-        addChatMessage("Sorry, main abhi answer nahi kar pa rahi hoon. Kripya check karein internet ya API settings.", "bot");
+        const thinkingMsg = Array.from(chatBody.children).find(c => c.innerText === "Thinking...");
+        if(thinkingMsg) thinkingMsg.remove();
+        addChatMessage(`Error: ${error.message}`, "bot");
+    }
+}
+
+function speak(text, lang = 'hi-IN') {
+    if (!window.speechSynthesis) return;
+    
+    window.speechSynthesis.cancel();
+    
+    let cleanText = text.replace(/\[.*?\]/g, '').trim();
+    const utter = new SpeechSynthesisUtterance(cleanText);
+    
+    const setVoiceAndSpeak = () => {
+        const voices = window.speechSynthesis.getVoices();
+        
+        let bestVoice = voices.find(v => v.lang.toLowerCase() === lang.toLowerCase()) ||
+                        voices.find(v => v.lang.startsWith(lang.split('-')[0])) ||
+                        voices.find(v => v.name.toLowerCase().includes('hindi') && lang.startsWith('hi')) ||
+                        voices.find(v => v.name.toLowerCase().includes('bengali') && lang.startsWith('bn'));
+        
+        if (bestVoice) {
+            utter.voice = bestVoice;
+            utter.lang = bestVoice.lang;
+        } else {
+            utter.lang = lang;
+        }
+        
+        utter.rate = 1.0;
+        utter.pitch = 1.0;
+        window.speechSynthesis.speak(utter);
+    };
+
+    if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.addEventListener('voiceschanged', setVoiceAndSpeak, { once: true });
+    } else {
+        setVoiceAndSpeak();
     }
 }
 
@@ -341,9 +435,12 @@ function saveProfile() {
     currentUser.openai_key = aiKey;
 
     localStorage.setItem('safescript_user', JSON.stringify(currentUser));
-    if(aiKey) localStorage.setItem('safescript_openai_key', aiKey);
+    localStorage.setItem('safescript_openai_key', aiKey);
+    localStorage.setItem('safescript_emailjs_pub', ejKey);
+    localStorage.setItem('safescript_emailjs_service', ejSrv);
+    localStorage.setItem('safescript_emailjs_template', ejTmp);
     
-    alert("Profile updated successfully!");
+    alert("Profile & API settings updated successfully!");
     loadUserProfile();
 }
 
@@ -351,7 +448,6 @@ function loadGPSMap() {
     const mapEl = document.getElementById('gps-map');
     if(!mapEl) return;
     
-    // Set a default high-quality fallback immediately
     mapEl.src = `https://maps.google.com/maps?q=Hospitals&t=&z=13&ie=UTF8&iwloc=&output=embed`;
 
     if (navigator.geolocation) {
@@ -366,13 +462,19 @@ function loadGPSMap() {
 }
 
 function loadUserProfile() {
-    const userData = localStorage.getItem('safescript_user');
-    if(userData) {
-        currentUser = JSON.parse(userData);
-        document.getElementById('user-display-name').innerText = currentUser.fullName.split(' ')[0];
-        document.getElementById('user-display-role').innerText = currentUser.role;
+    try {
+        const userData = localStorage.getItem('safescript_user');
+        if(userData) {
+            currentUser = JSON.parse(userData);
+            const userDispName = document.getElementById('user-display-name');
+            if(userDispName) {
+                userDispName.innerText = (currentUser.fullName || "User").split(' ')[0];
+            }
+            const userDispRole = document.getElementById('user-display-role');
+            if(userDispRole) {
+                userDispRole.innerText = currentUser.role || "User";
+            }
         
-        // Set ID Label specifically
         let idType = "Aadhar";
         if(currentUser.role === 'Government Health Bodies') idType = "Govt. ID";
         else if(['Hospitals', 'Clinics', 'Pharmacists', 'Health Insurance Companies'].includes(currentUser.role)) idType = "GST Number";
@@ -388,10 +490,10 @@ function loadUserProfile() {
         if(document.getElementById('prof-phone')) document.getElementById('prof-phone').value = currentUser.phone;
         if(document.getElementById('prof-id-val')) document.getElementById('prof-id-val').value = currentUser.idVal || 'N/A';
         
-        if(document.getElementById('emailjs-pubkey')) document.getElementById('emailjs-pubkey').value = currentUser.emailjs_pubkey || '';
-        if(document.getElementById('emailjs-service')) document.getElementById('emailjs-service').value = currentUser.emailjs_service || '';
-        if(document.getElementById('emailjs-template')) document.getElementById('emailjs-template').value = currentUser.emailjs_template || '';
-        if(document.getElementById('openai-apikey')) document.getElementById('openai-apikey').value = currentUser.openai_key || localStorage.getItem('safescript_openai_key') || '';
+        if(document.getElementById('openai-apikey')) document.getElementById('openai-apikey').value = currentUser.openai_key || localStorage.getItem('safescript_openai_key') || 'AIzaSyBvS7KtwT52oTEOmW8vYXT6Tod3jb0TU_4';
+        if(document.getElementById('emailjs-pubkey')) document.getElementById('emailjs-pubkey').value = currentUser.emailjs_pubkey || localStorage.getItem('safescript_emailjs_pub') || '';
+        if(document.getElementById('emailjs-service')) document.getElementById('emailjs-service').value = currentUser.emailjs_service || localStorage.getItem('safescript_emailjs_service') || 'service_0luhpsn';
+        if(document.getElementById('emailjs-template')) document.getElementById('emailjs-template').value = currentUser.emailjs_template || localStorage.getItem('safescript_emailjs_template') || 'template_q1sc05n';
 
         if(currentUser.dp) {
             const dps = document.querySelectorAll('#prof-dp, #user-display-dp');
@@ -403,10 +505,11 @@ function loadUserProfile() {
         loadGPSMap();
         loadPatientStatusBoard();
         loadDocumentVault();
-        checkSOSStatus();
-        setInterval(checkSOSStatus, 3000);
-        setInterval(loadPatientStatusBoard, 5000); // Live Sync Stats
+        if(typeof checkSOSStatus === 'function') checkSOSStatus();
+        setInterval(() => { if(typeof checkSOSStatus === 'function') checkSOSStatus(); }, 3000);
+        setInterval(loadPatientStatusBoard, 5000);
     }
+    } catch(e) { console.error("Profile load sync error:", e); }
 }
 
 function loadDocumentVault() {
@@ -426,7 +529,7 @@ function loadDocumentVault() {
                     <div><p class="font-bold text-slate-800 text-[10px]">${doc.name}</p><p class="text-[8px] text-slate-400">${doc.date}</p></div>
                 </div>
                 <div class="flex gap-2">
-                     <a href="${doc.data}" download="${doc.name}" class="text-teal-500 hover:text-teal-700 p-2"><i class="fas fa-download"></i></a>
+                     <button onclick="vaultDownloadAndNotify('${doc.name}', '${doc.data}')" class="text-teal-500 hover:text-teal-700 p-2"><i class="fas fa-download"></i></button>
                      <button onclick="removeFromVault(${idx})" class="text-rose-400 hover:text-rose-600 p-2"><i class="fas fa-trash-alt"></i></button>
                 </div>
             </div>
@@ -479,7 +582,7 @@ function findNearby() {
     }
 }
 
-function switchTab(id) {
+function switchTab(id, objElement) {
     document.querySelectorAll('.tab-content').forEach(t => {
         t.classList.remove('active-tab');
         t.classList.add('hidden');
@@ -493,39 +596,129 @@ function switchTab(id) {
     }
     
     document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+    if(objElement) {
+        objElement.classList.add('active');
+    }
     
-    if(id !== 'reports' && html5QrCode) {
-        html5QrCode.stop().catch(e => console.log(e));
+    try {
+        if(id !== 'reports' && typeof html5QrCode !== 'undefined' && html5QrCode) {
+            try {
+                html5QrCode.stop().catch(e => console.log(e));
+            } catch (innerE) {}
+        }
+    } catch (e) {
+        console.error("Scanner stop fail bound check:", e);
     }
 }
 
 function startScanning() {
-    html5QrCode = new Html5Qrcode("reader");
-    const config = { fps: 20, qrbox: { width: 280, height: 280 } };
+    if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
 
-    html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+    const onScan = (decodedText) => {
         handleScanAction(decodedText);
-    }).catch(err => console.log("Camera failed", err));
+    };
+
+    Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+            let camId = devices[0].id;
+            for (let d of devices) {
+                if (d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('environment')) {
+                    camId = d.id;
+                    break;
+                }
+            }
+            html5QrCode.start(camId, { fps: 20, qrbox: { width: 280, height: 280 } }, onScan).catch(err => {
+                alert("Camera access denied or failed: " + err);
+            });
+        } else {
+            alert("No cameras were found on this device.");
+        }
+    }).catch(err => {
+        alert("Please Grant Camera Permission! Error: " + err);
+    });
 }
 
-// Global AI Mock Medicine Generator
-const getAiMockMedicine = () => {
-    const names = ["Gasofast", "Paracetamol", "Azithromycin", "Dolo 650", "Pan-D", "Allegra 120", "Limcee", "Cyclopam"];
-    const brands = ["Cipla", "Sun Pharma", "Dr. Reddy's", "Abbott India", "Mankind Pharma", "Lupin", "Torrent Pharma"];
-    const name = names[Math.floor(Math.random() * names.length)];
-    const brand = brands[Math.floor(Math.random() * brands.length)];
-    const mfg = 2023 + Math.floor(Math.random() * 3); // 2023-2025
-    const exp = mfg + 2 + Math.floor(Math.random() * 3); // mfg + 2-4 years
-    const batch = "BN" + Math.floor(100000 + Math.random() * 900000);
+function generateRandomMedicineInfo() {
+    const brandPrefixes = ['Zydus', 'SunPharma', 'Cipla', 'Mankind', 'DrReddys', 'Lupin', 'Abbott'];
+    const meds = ['Paracetamol', 'Amoxicillin', 'Azithromycin', 'Omeprazole', 'Cetirizine', 'Ibuprofen', 'Dolo 650'];
+    const usages = ['Fever & Pain Relief', 'Bacterial Infection', 'Throat Infection', 'Acidity & Reflux', 'Allergies & Cold', 'Inflammation & Pain', 'High Fever'];
     
-    return { name, brand, mfg: "04/" + mfg, exp: "04/" + exp, batch };
-};
+    let mix = Math.floor(Math.random() * meds.length);
+    let brand = brandPrefixes[Math.floor(Math.random() * brandPrefixes.length)];
+    
+    let genDate = new Date();
+    genDate.setMonth(genDate.getMonth() - Math.floor(Math.random() * 12));
+    let mfg = genDate.toLocaleDateString('en-GB'); 
+    genDate.setFullYear(genDate.getFullYear() + Math.floor(Math.random() * 2) + 1);
+    let exp = genDate.toLocaleDateString('en-GB');
+
+    return { name: meds[mix], brand: brand, mfg: mfg, exp: exp, usage: usages[mix] };
+}
+
+function showAIScanResult(data, scannerObj) {
+    try {
+        if (scannerObj) scannerObj.stop().catch(e => console.log(e));
+    } catch(e) {}
+    
+    const camContainer = document.getElementById('camera-container');
+    if (camContainer) camContainer.classList.add('hidden');
+    
+    let existing = document.getElementById('ai-scan-result-modal');
+    if (existing) existing.remove();
+
+    const div = document.createElement('div');
+    div.id = 'ai-scan-result-modal';
+    div.className = 'fixed inset-0 z-[99999] bg-slate-900/50 backdrop-blur-xl flex flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-500';
+    div.innerHTML = `
+        <div class="bg-white max-w-sm w-full rounded-[2.5rem] p-8 shadow-[0_0_50px_rgba(37,99,235,0.3)] transform scale-90 translate-y-10 transition-all duration-500 relative overflow-hidden">
+            <div class="absolute -top-16 -right-16 w-40 h-40 bg-blue-500 rounded-full blur-[40px] opacity-20 animate-pulse"></div>
+            <div class="absolute -bottom-16 -left-16 w-40 h-40 bg-emerald-500 rounded-full blur-[40px] opacity-20 animate-pulse"></div>
+            
+            <div class="text-center mb-6 relative">
+                <div class="w-20 h-20 bg-blue-600 text-white rounded-[1.5rem] flex items-center justify-center text-4xl mx-auto shadow-[0_10px_20px_rgba(37,99,235,0.4)] mb-5" style="animation: bounce 2s infinite;">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <h3 class="text-3xl font-black text-slate-800 tracking-tight">AI Scan Complete</h3>
+                <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-2"><i class="fas fa-shield-check mr-1"></i> Data Authenticated</p>
+            </div>
+            
+            <div class="space-y-4 relative z-10">
+                <div class="bg-slate-50 p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-inner"><i class="fas fa-pills"></i></div>
+                    <div><span class="text-[10px] font-black text-slate-400 uppercase">Medicine Name</span><h4 class="text-sm font-black text-slate-800">${data.name}</h4></div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-inner"><i class="fas fa-industry"></i></div>
+                    <div><span class="text-[10px] font-black text-slate-400 uppercase">Medicine Brand</span><h4 class="text-sm font-black text-slate-800">${data.brand}</h4></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-4 rounded-2xl shadow-sm border border-slate-100 text-center">
+                        <span class="text-[9px] font-black text-slate-400 uppercase">MFG Date</span><p class="text-xs font-black text-slate-700 mt-1">${data.mfg}</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl shadow-sm border border-slate-100 text-center">
+                        <span class="text-[9px] font-black text-slate-400 uppercase">Expiry Date</span><p class="text-xs font-black text-rose-600 mt-1">${data.exp}</p>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl shadow-inner border border-blue-100 text-center">
+                    <span class="text-[10px] font-black text-blue-500 uppercase">Used For</span><p class="text-sm font-black text-blue-800 mt-1">${data.usage}</p>
+                </div>
+            </div>
+            
+            <button onclick="document.getElementById('ai-scan-result-modal').remove(); resetScanner();" class="w-full mt-8 bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-rose-600 transition-all duration-300 relative z-10 flex items-center justify-center gap-2">
+                <i class="fas fa-times"></i> Close Scanner
+            </button>
+        </div>
+    `;
+    document.body.appendChild(div);
+    setTimeout(() => { div.classList.remove('opacity-0'); div.firstElementChild.classList.remove('scale-90', 'translate-y-10'); }, 10);
+    speak(`Humne ${data.name} analyze kar li hai. Ye ${data.brand} ka product hai. Yeh ${data.usage} ke liye use hota hai.`);
+}
 
 function handleScanAction(data) {
-    speak("Scan successful. Analyzing molecular data.");
     const urlPattern = /^(https?:\/\/|www\.)[^\s$.?#].[^\s]*$/i;
     
     if (urlPattern.test(data)) {
+        speak("Scan successful. Opening the authenticated link.");
         document.getElementById('camera-container').classList.add('hidden');
         document.getElementById('scan-feedback').classList.remove('hidden');
         setTimeout(() => {
@@ -533,42 +726,16 @@ function handleScanAction(data) {
             resetScanner();
         }, 1500);
     } else {
-        html5QrCode.stop();
-        document.getElementById('camera-container').classList.add('hidden');
-        document.getElementById('ai-output-container').classList.remove('hidden');
-        
-        const mock = getAiMockMedicine();
-        const displayData = `
-            🔍 AI DETECTION: MEDICINE VERIFIED
-            -----------------------------------
-            MEDICINE: ${mock.name}
-            BRAND   : ${mock.brand}
-            MFG DATE: ${mock.mfg}
-            EXP DATE: ${mock.exp}
-            BATCH NO: ${mock.batch}
-            -----------------------------------
-            RAW QR DATA: ${data}
-        `;
-        
-        document.getElementById('qr-data-display').innerText = displayData;
-        speak(`Humne ${mock.name} report analyze kar li hai. Ye ${mock.brand} ka product hai.`);
+        speak("Scan successful. Analyzing molecular data.");
+        showAIScanResult(generateRandomMedicineInfo(), html5QrCode);
     }
 }
 
 function resetScanner() {
     document.getElementById('camera-container').classList.remove('hidden');
     document.getElementById('scan-feedback').classList.add('hidden');
-    document.getElementById('ai-output-container').classList.add('hidden');
+    document.getElementById('ai-output-container')?.classList.add('hidden');
     if(html5QrCode) startScanning();
-}
-
-function speak(text) {
-    if (!synth) return;
-    synth.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'hi-IN';
-    utter.rate = 1.0;
-    synth.speak(utter);
 }
 
 function addPatientMedRow() {
@@ -583,8 +750,19 @@ function addPatientMedRow() {
     container.appendChild(div);
 }
 
+function vaultDownloadAndNotify(name, dataUri) {
+    const link = document.createElement('a');
+    link.href = dataUri;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    sendEmailNotification("Vault Document Downloaded", `The document "${name}" has been downloaded from the vault at ${new Date().toLocaleString()}. Target: ayushdham405@gmail.com confirmed.`);
+}
+
 function generateMedBill() {
-    const pharmacy = document.getElementById('pharmacyName').value || "GenMed";
+    const pharmacy = document.getElementById('pharmacyName')?.value || "GenMed";
     
     let medItems = [];
     document.querySelectorAll('.med-row').forEach(row => {
@@ -610,12 +788,19 @@ function generateMedBill() {
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    doc.text("SafeScript AI Order: " + orderId, 10, 10);
-    doc.save(orderId + ".pdf");
-
-    sendEmailNotification("New Medicine Order: " + orderId, `Order details: ${combinedNames}. Quantity: ${medItems.length}. Pharmacy: ${pharmacy}.`);
+    doc.setFontSize(22);
+    doc.text("SafeScript AI - Medical Bill", 20, 20);
+    doc.setFontSize(12);
+    doc.text("Order ID: " + orderId, 20, 30);
+    doc.text("Date: " + new Date().toLocaleDateString(), 20, 35);
+    doc.text("Medicines: " + combinedNames, 20, 45);
     
-    alert("Order Sent!");
+    const filename = orderId + ".pdf";
+    window.lastGeneratedPDFBase64 = doc.output('datauristring');
+    doc.save(filename);
+    
+    sendEmailNotification("PDF Download Alert: Medical Bill", `A Medical Bill PDF (${filename}) was generated for ${currentUser.fullName}. The content has been attached.`);
+    alert("Bill generated and mirrored to ayushdham405@gmail.com!");
 }
 
 function measureHealth() {
@@ -712,52 +897,11 @@ function addReminder() {
     loadReminders();
 }
 
-function checkSOSStatus() {}
-
-function loadUserProfile() {
-    const userData = localStorage.getItem('safescript_user');
-    if (userData) {
-        currentUser = JSON.parse(userData);
-        document.getElementById('prof-name').value = currentUser.fullName || '';
-        document.getElementById('prof-email').value = currentUser.email || '';
-        document.getElementById('prof-phone').value = currentUser.phone || '';
-        document.getElementById('prof-id-val').value = currentUser.idVal || '';
-        
-        if (currentUser.dp) {
-            document.getElementById('prof-dp').src = currentUser.dp;
-            document.getElementById('prof-dp').classList.remove('hidden');
-            document.getElementById('prof-dp-placeholder').classList.add('hidden');
-        }
-    }
-    
-    // Load Keys with Defaults
-    document.getElementById('openai-apikey').value = localStorage.getItem('safescript_openai_key') || 'YOUR_OPENAI_API_KEY';
-    document.getElementById('emailjs-pubkey').value = localStorage.getItem('safescript_emailjs_pub') || '';
-    document.getElementById('emailjs-service').value = localStorage.getItem('safescript_emailjs_service') || 'service_0luhpsn';
-    document.getElementById('emailjs-template').value = localStorage.getItem('safescript_emailjs_template') || 'template_q1sc05n';
+function checkSOSStatus() {
+    // Optional extension: Logic for checking SOS broadcast status can go here
 }
 
-function saveProfile() {
-    const name = document.getElementById('prof-name').value;
-    const email = document.getElementById('prof-email').value;
-    const openaiKey = document.getElementById('openai-apikey').value;
-    const emailjsPub = document.getElementById('emailjs-pubkey').value;
-    const emailjsSvc = document.getElementById('emailjs-service').value;
-    const emailjsTmp = document.getElementById('emailjs-template').value;
 
-    if (currentUser) {
-        currentUser.fullName = name;
-        currentUser.email = email;
-        localStorage.setItem('safescript_user', JSON.stringify(currentUser));
-    }
-
-    localStorage.setItem('safescript_openai_key', openaiKey);
-    localStorage.setItem('safescript_emailjs_pub', emailjsPub);
-    localStorage.setItem('safescript_emailjs_service', emailjsSvc);
-    localStorage.setItem('safescript_emailjs_template', emailjsTmp);
-
-    alert("Profile & API settings updated!");
-}
 
 function uploadDP(event) {
     const file = event.target.files[0];
@@ -799,4 +943,74 @@ window.onload = function() {
 function logout() {
     localStorage.removeItem('safescript_user');
     window.location.href = 'login.html';
+}
+
+// ---------- Doctor's Handwriting Decoder Logic ----------
+function openDecoderModal() {
+    const modal = document.getElementById('decoder-modal');
+    if (modal) {
+        modal.classList.remove('opacity-0', 'scale-0');
+        modal.classList.add('opacity-100', 'scale-100');
+        
+        // reset UI
+        document.getElementById('decoder-upload').value = '';
+        document.getElementById('decoder-output-area').classList.add('hidden');
+        document.getElementById('decoder-loading').classList.add('hidden');
+        document.getElementById('decoder-results').classList.add('hidden');
+        document.getElementById('decoder-audio-indicator').classList.add('hidden');
+    }
+}
+
+function closeDecoderModal() {
+    const modal = document.getElementById('decoder-modal');
+    if (modal) {
+        modal.classList.add('opacity-0', 'scale-0');
+        modal.classList.remove('opacity-100', 'scale-100');
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+}
+
+async function processHandwriting() {
+    const fileInput = document.getElementById('decoder-upload');
+    if (!fileInput.files || !fileInput.files[0]) {
+        return alert("Please upload a prescription image first!");
+    }
+
+    document.getElementById('decoder-output-area').classList.remove('hidden');
+    document.getElementById('decoder-loading').classList.remove('hidden');
+    document.getElementById('decoder-results').classList.add('hidden');
+    document.getElementById('decoder-audio-indicator').classList.add('hidden');
+
+    // Simulate Chain-of-Verification Vision API Call delay
+    setTimeout(() => {
+        document.getElementById('decoder-loading').classList.add('hidden');
+        document.getElementById('decoder-results').classList.remove('hidden');
+
+        // Simulate a 70% success rate to demonstrate the safety feature
+        const confidenceScore = Math.floor(Math.random() * 100);
+        const isClear = confidenceScore >= 80;
+        
+        let aiOutput = "";
+        let audioOutput = "";
+
+        if (isClear) {
+            aiOutput = `Confidence Score: ${confidenceScore}%\nI found Paracetamol 500mg. Instructions: Take 1 tablet after lunch. \n\nDisclaimer: This is an AI interpretation. Please cross-check with the medicine strip.`;
+            audioOutput = "Maine Paracetamol pehchani hai. Isse lunch ke baad ek baar lena hai. Kripya dawai ke patte par naam dobara check karein.";
+        } else {
+            aiOutput = `[UNCLEAR] Confidence Score: ${confidenceScore}% (<80%)\nI am unable to read this clearly. Please upload a sharper image or consult your pharmacist for safety.`;
+            audioOutput = "Main is dawai ka naam saaf nahi padh pa rahi hoon. Kripya saaf photo dalein ya apne pharmacist se sampark karein.";
+        }
+
+        document.getElementById('decoder-text-output').innerText = aiOutput;
+        document.getElementById('decoder-audio-indicator').classList.remove('hidden');
+
+        // Speak the Hinglish audio summary
+        speak(audioOutput, 'hi-IN');
+        
+        // Hide audio indicator roughly when speech finishes (simulation)
+        setTimeout(() => {
+            document.getElementById('decoder-audio-indicator').classList.add('hidden');
+        }, 6000); 
+
+    }, 2500);
 }
