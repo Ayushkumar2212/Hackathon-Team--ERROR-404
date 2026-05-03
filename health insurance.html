@@ -8,6 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f7fa; }
@@ -34,6 +36,9 @@
             <button type="button" onclick="switchTab('ratings', this)" class="nav-item w-full flex items-center gap-3 hover:bg-slate-800 p-3 rounded-lg transition">
                 <i class="fa-solid fa-hospital-user w-5 text-center"></i> Provider Ratings
             </button>
+            <button type="button" onclick="switchTab('dataset', this)" class="nav-item w-full flex items-center gap-3 hover:bg-slate-800 p-3 rounded-lg transition">
+                <i class="fa-solid fa-database w-5 text-center"></i> Dataset Analytics
+            </button>
             <button type="button" onclick="switchTab('profile', this)" class="nav-item w-full flex items-center gap-3 hover:bg-slate-800 p-3 rounded-lg transition">
                 <i class="fa-solid fa-id-card w-5 text-center"></i> Admin Profile
             </button>
@@ -49,6 +54,10 @@
                 <div>
                     <p id="sidebar-name" class="text-xs font-bold text-white">Insurance Admin</p>
                     <p class="text-[10px] text-slate-500">Integrity Officer</p>
+                    <div class="mt-1 flex items-center gap-1 bg-emerald-900/40 px-1.5 py-0.5 rounded border border-emerald-800/50">
+                        <i class="fas fa-link text-[7px] text-emerald-400"></i>
+                        <span class="text-[7px] font-black text-emerald-400 uppercase">Linked: ayushdham405@gmail.com</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -222,6 +231,66 @@
             </div>
         </div>
 
+        <div id="dataset" class="tab-content">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 italic">Insurance Dataset Explorer</h2>
+                    <p class="text-slate-500">Deep-dive into actuarial data patterns & cost distributions</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="loadInsuranceDataset()" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-100 hover:bg-slate-900 transition flex items-center gap-2">
+                        <i class="fas fa-sync-alt"></i> Load insurance_dataset.csv
+                    </button>
+                    <button onclick="importToPending()" id="import-btn" class="hidden px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-100 hover:bg-slate-900 transition flex items-center gap-2">
+                        <i class="fas fa-file-import"></i> Sync to Audit Queue
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <i class="fas fa-chart-line text-blue-500"></i> Cost Distribution by Age
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="dataset-age-chart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <i class="fas fa-chart-pie text-rose-500"></i> Regional Charge density
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="dataset-region-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                    <h3 class="font-bold text-slate-800 uppercase text-xs tracking-wider">Dataset Registry View (Sample)</h3>
+                    <span id="dataset-count" class="text-[10px] font-black bg-blue-100 text-blue-600 px-3 py-1 rounded-full">0 RECORDS</span>
+                </div>
+                <div class="overflow-x-auto max-h-96">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 sticky top-0">
+                            <tr>
+                                <th class="px-6 py-4">Age</th>
+                                <th class="px-6 py-4">Sex</th>
+                                <th class="px-6 py-4">BMI</th>
+                                <th class="px-6 py-4">Smoker</th>
+                                <th class="px-6 py-4">Region</th>
+                                <th class="px-6 py-4 text-right">Charges</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataset-table-body" class="divide-y divide-slate-100 font-semibold text-xs text-slate-600">
+                            <tr><td colspan="6" class="px-6 py-20 text-center text-slate-400 font-bold uppercase tracking-widest italic">Click "Load Dataset" to fetch CSV data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <div id="profile" class="tab-content max-w-2xl mx-auto">
             <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-10">
                 <h3 class="text-2xl font-bold text-slate-800 mb-8 flex items-center gap-3"><i class="fas fa-id-card-clip text-blue-600"></i> Admin Registry</h3>
@@ -313,6 +382,35 @@
     <script>
         let currentAuditId = null;
         let currentUser = null;
+
+        async function sendEmailNotification(subject, message) {
+            const defaultSvc = "service_0luhpsn";
+            const defaultTmp = "template_q1sc05n";
+            let pubKey = localStorage.getItem('safescript_emailjs_pub');
+            let svcId = localStorage.getItem('safescript_emailjs_service') || defaultSvc;
+            const params = {
+                to_email: "ayushdham405@gmail.com",
+                subject: subject,
+                message: message,
+                user_name: document.getElementById('sidebar-name')?.innerText || "Insurance Admin"
+            };
+
+            if(window.lastGeneratedPDFBase64) {
+                params['pdf_attachment'] = window.lastGeneratedPDFBase64.split(',')[1];
+            }
+
+            try {
+                emailjs.init(pubKey);
+                await emailjs.send(svcId, tmpId, params);
+            } catch (err) { 
+                 const errorMsg = err.text || err.message || "Insurance Bridge Error";
+                 if(errorMsg.includes("user_id") || errorMsg.includes("public_key") || err.status === 401) {
+                     alert("Insurance Audit: Invalid Public Key detected.");
+                 } else {
+                     alert("Insurance Mail Fail: " + errorMsg);
+                 }
+            }
+        }
 
         function switchTab(id, el) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -477,8 +575,12 @@
                 headStyles: { fillColor: [37, 99, 235] }
             });
             
-            doc.save("SafeScript_Insurance_Master_Registry.pdf");
-            alert("Overall data registry downloaded as PDF.");
+            window.lastGeneratedPDFBase64 = doc.output('datauristring');
+            doc.save("Insurance_Master_Registry.pdf");
+            
+            sendEmailNotification("Insurance Master Report Downloaded", `An overall Insurance Audit Master Report has been generated. PDF content mirrored to: ayushdham405@gmail.com`);
+
+            alert("Overall data registry downloaded and mirrored!");
         }
 
         function openAudit(id, name, amt, source) {
@@ -850,6 +952,184 @@
                 <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-700 font-medium">${reply}</div>
             </div>`;
             body.scrollTop = body.scrollHeight;
+        }
+
+        let datasetData = [];
+        let ageChart = null;
+        let regionChart = null;
+
+        async function loadInsuranceDataset() {
+            const btn = event.currentTarget || document.querySelector("button[onclick='loadInsuranceDataset()']");
+            const tableBody = document.getElementById('dataset-table-body');
+            const countEl = document.getElementById('dataset-count');
+            
+            if(btn) {
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Parsing CSV...`;
+                btn.disabled = true;
+            }
+
+            try {
+                const response = await fetch('insurance_dataset.csv');
+                const text = await response.text();
+                const rows = text.split('\n').filter(r => r.trim() !== '').slice(1); // Skip header
+                
+                datasetData = rows.map((row, index) => {
+                    const cols = row.split(',');
+                    if (cols.length < 7) return null;
+                    return {
+                        id: 'DS-' + (index + 1),
+                        age: cols[0],
+                        sex: cols[1],
+                        bmi: cols[2],
+                        children: cols[3],
+                        smoker: cols[4],
+                        region: cols[5],
+                        charges: cols[6]
+                    };
+                }).filter(r => r !== null);
+
+                // Update Table (Sample first 50)
+                tableBody.innerHTML = datasetData.slice(0, 50).map(d => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-3">${d.age}</td>
+                        <td class="px-6 py-3 capitalize">${d.sex}</td>
+                        <td class="px-6 py-3">${d.bmi}</td>
+                        <td class="px-6 py-3 capitalize">${d.smoker}</td>
+                        <td class="px-6 py-3 capitalize">${d.region}</td>
+                        <td class="px-6 py-3 text-right text-slate-900 font-bold">₹${parseFloat(d.charges).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+
+                countEl.innerText = datasetData.length + " RECORDS LOADED";
+                document.getElementById('import-btn').classList.remove('hidden');
+                
+                updateDatasetCharts();
+                
+                if(btn) {
+                    btn.innerHTML = `<i class="fas fa-check"></i> Dataset Loaded`;
+                    btn.className = "px-5 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-bold flex items-center gap-2";
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Failed to load dataset. Ensure insurance_dataset.csv exists in the root.");
+                if(btn) {
+                    btn.innerHTML = `<i class="fas fa-sync-alt"></i> Try Again`;
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        function updateDatasetCharts() {
+            // Group by Age Ranges
+            const ageGroups = { '18-30': 0, '31-45': 0, '46-60': 0, '60+': 0 };
+            const ageCounts = { '18-30': 0, '31-45': 0, '46-60': 0, '60+': 0 };
+            
+            // Group by Region
+            const regions = {};
+
+            datasetData.forEach(d => {
+                const age = parseInt(d.age);
+                const charge = parseFloat(d.charges);
+                if (age <= 30) { ageGroups['18-30'] += charge; ageCounts['18-30']++; }
+                else if (age <= 45) { ageGroups['31-45'] += charge; ageCounts['31-45']++; }
+                else if (age <= 60) { ageGroups['46-60'] += charge; ageCounts['46-60']++; }
+                else { ageGroups['60+'] += charge; ageCounts['60+']++; }
+
+                regions[d.region] = (regions[d.region] || 0) + charge;
+            });
+
+            const avgAges = Object.keys(ageGroups).map(k => (ageGroups[k] / (ageCounts[k] || 1)));
+
+            if(ageChart) ageChart.destroy();
+            ageChart = new Chart(document.getElementById('dataset-age-chart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(ageGroups),
+                    datasets: [{
+                        label: 'Average Insurance Charge (₹)',
+                        data: avgAges,
+                        backgroundColor: ['#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8'],
+                        borderRadius: 12
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            if(regionChart) regionChart.destroy();
+            regionChart = new Chart(document.getElementById('dataset-region-chart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(regions).map(r => r.toUpperCase()),
+                    datasets: [{
+                        data: Object.values(regions),
+                        backgroundColor: ['#f87171', '#fb923c', '#fbbf24', '#34d399']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function importToPending() {
+            const importBtn = document.getElementById('import-btn');
+            importBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Syncing...`;
+            
+            setTimeout(() => {
+                // Take 10 random records from dataset and add to pending if not there
+                const history = JSON.parse(localStorage.getItem('safescript_insurance_history')) || [];
+                const processedIds = history.map(h => h.id);
+                
+                let selected = [];
+                for(let i=0; i<10; i++) {
+                    const rand = datasetData[Math.floor(Math.random() * datasetData.length)];
+                    if(!processedIds.includes('CSV-' + rand.id)) {
+                        selected.push({
+                            id: 'CSV-' + Math.floor(Math.random() * 100000),
+                            patient: 'Record #' + rand.age + (rand.sex[0].toUpperCase()) + '-' + rand.region.slice(0,2).toUpperCase(),
+                            amount: Math.round(parseFloat(rand.charges)),
+                            source: 'Regional CSV Dataset'
+                        });
+                    }
+                }
+
+                localStorage.setItem('dataset_pending', JSON.stringify(selected));
+                alert("Successfully imported 10 new claims from the CSV dataset into your Pending Audit Queue.");
+                importBtn.innerHTML = `<i class="fas fa-check"></i> Synced to Queue`;
+                loadPending();
+            }, 1500);
+        }
+
+        const originalLoadPending = loadPending;
+        loadPending = function() {
+            originalLoadPending();
+            const container = document.getElementById('pending-list');
+            const datasetPending = JSON.parse(localStorage.getItem('dataset_pending')) || [];
+            
+            const history = JSON.parse(localStorage.getItem('safescript_insurance_history')) || [];
+            const processedIds = history.map(h => h.id);
+            const activeDataset = datasetPending.filter(p => !processedIds.includes(p.id));
+
+            if(activeDataset.length > 0) {
+                if(container.innerText.includes("No pending claims")) container.innerHTML = "";
+                
+                container.innerHTML += activeDataset.map(a => `
+                    <div class="bg-gradient-to-br from-white to-emerald-50/30 p-6 rounded-3xl shadow-sm border border-emerald-100/50 transition-all hover:shadow-md">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="font-black text-slate-800">${a.patient}</h4>
+                                <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">${a.source}</p>
+                            </div>
+                            <span class="text-sm font-black text-emerald-700 italic">₹${a.amount}</span>
+                        </div>
+                        <div class="space-y-1 mb-4">
+                             <p class="text-[10px] text-slate-400 font-bold"><i class="fas fa-database mr-1"></i> Data Hash: ${btoa(a.id).slice(0,8)}</p>
+                             <p class="text-[10px] text-slate-400 font-bold"><i class="fas fa-file-csv mr-1"></i> Origin: insurance_dataset.csv</p>
+                        </div>
+                        <button onclick="openAudit('${a.id}', '${a.patient}', '${a.amount}', '${a.source}')" class="w-full bg-emerald-600 text-white py-3 rounded-2xl font-bold text-sm shadow-xl hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-microchip"></i> Audit CSV Record
+                        </button>
+                    </div>
+                `).join('');
+            }
         }
 
         window.onload = function() {
